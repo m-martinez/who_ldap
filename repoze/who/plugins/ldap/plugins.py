@@ -73,9 +73,7 @@ class LDAPAuthenticatorPlugin(object):
         
         try:
             self.ldap_connection.simple_bind_s(dn, password)
-            # The credentials are valid; now let's return the DN (we should
-            # NOT return the uid because it may not be unique; the DN, on the
-            # contrary, is _always_ unique):
+            # The credentials are valid!
             return dn
         except ldap.LDAPError:
             return None
