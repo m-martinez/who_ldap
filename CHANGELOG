@@ -1,6 +1,8 @@
 repoze.who.plugins.ldap changelog
 =================================
 
-1.0 (2008-08-29)
+1.0 (2008-08-29) (*unreleased*)
+-------------------------------
+The initial release.
 
- - Initial release. The package provides an LDAP authenticator.
+ - The package provides an LDAP authenticator.
