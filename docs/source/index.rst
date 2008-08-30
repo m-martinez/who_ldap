@@ -24,7 +24,7 @@ Install
 =======
 
 To install this plugin you should run:
-    easy_install repoze.who.plugins.ldap==dev
+    easy_install repoze.who.plugins.ldap
 
 If you have problems to install it, they are very likely to be caused by
 python-ldap: You will have to install it manually in order to set the correct
