@@ -47,6 +47,7 @@ setup(
     author="Gustavo Narea",
     author_email="me@gustavonarea.net",
     url="http://code.gustavonarea.net/repoze.who.plugins.ldap/",
+    download_url="https://launchpad.net/repoze.who.plugins.ldap/+download",
     license="GNU General Public License v3",
     packages=find_packages(),
     include_package_data=True,
