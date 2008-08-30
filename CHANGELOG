@@ -1,7 +1,7 @@
 repoze.who.plugins.ldap changelog
 =================================
 
-1.0 (2008-08-29) (*unreleased*)
+1.0 (*unreleased*)
 -------------------------------
 The initial release.
 

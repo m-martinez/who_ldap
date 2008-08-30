@@ -1,10 +1,8 @@
-***************************************************************************
-:mod:`repoze.who.plugins.ldap` -- LDAP Authentication for WSGI Applications
-***************************************************************************
+repoze.who.plugins.ldap -- LDAP Authentication for WSGI Applications
 
-:mod:`repoze.who.plugins.ldap` is an LDAP plugin for the identification and
+repoze.who.plugins.ldap is an LDAP plugin for the identification and
 authentication framework for WSGI applications, repoze.who, which acts as WSGI
 middleware.
  
 See the ``docs`` subdirectory of this package for more information, or browse
-`the online documentation <http://code.gustavonarea.net/repoze.who.plugins.ldap/>`_.
+the online documentation <http://code.gustavonarea.net/repoze.who.plugins.ldap/>.
