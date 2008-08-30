@@ -1,1 +1,3 @@
 repoze.who.plugins.ldap.egg-info
+docs/build
+.bzrignore

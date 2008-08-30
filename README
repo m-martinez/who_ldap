@@ -6,25 +6,5 @@
 authentication framework for WSGI applications, repoze.who, which acts as WSGI
 middleware.
  
-See the ``docs`` subdirectory of this package (also available at least
-provisionally at http://static.repoze.org/whodocs) for more
-information.
-
-
-Install
-=======
-
-To install this repoze.who plugin, you should run:
-    easy_install repoze.who.plugins.ldap
-
-If you have problems to install it, they are very likely to be caused by
-python-ldap: You will have to install it manually in order to set the correct
-path to the OpenLDAP libraries. For more information, visit:
-http://python-ldap.sourceforge.net/doc/html/installing.html
-
-
-Bug reports and feature requests
-================================
-
-This plugin uses Launchpad.net as the bug tracking system:
-https://bugs.launchpad.net/repoze.who.plugins.ldap
+See the ``docs`` subdirectory of this package for more information, or browse
+`the online documentation <http://code.gustavonarea.net/repoze.who.plugins.ldap/>`_.

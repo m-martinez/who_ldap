@@ -13,10 +13,13 @@
 
 import sys, os
 
+here = os.path.dirname(os.path.abspath(__file__))
+root = os.path.dirname(os.path.dirname(here))
+
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-#sys.path.append(os.path.abspath('some/directory'))
+sys.path.append(root)
 
 # General configuration
 # ---------------------
@@ -44,7 +47,7 @@ copyright = '2008, Gustavo Narea'
 # The short X.Y version.
 version = '1.0'
 # The full version, including alpha/beta/rc tags.
-release = '1.0'
+release = open(os.path.join(root, 'VERSION')).readline().rstrip()
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
