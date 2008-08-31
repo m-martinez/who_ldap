@@ -90,7 +90,7 @@ If you need help, the best place to ask is `the repoze project mailing list
 <http://lists.repoze.org/listinfo/repoze-dev>`_, because the plugin author is
 subscribed to this list. You may also use the `#repoze 
 <irc://irc.freenode.net/repoze>`_ IRC channel or `Launchpad.net's answers for 
-repoze.who.plugins.ldap <https://answers.launchpad.net/repoze.who.plugins.ldap>`_.
+quick questions only <https://answers.launchpad.net/repoze.who.plugins.ldap>`_.
 
 Development-related links include:
  - `Homepage at Launchpad.net <https://launchpad.net/repoze.who.plugins.ldap>`_.
