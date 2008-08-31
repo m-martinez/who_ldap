@@ -102,7 +102,7 @@ Development-related links include:
 Contributing
 ============
 
-Any patch is welcome, but if can, please make sure to update the test suite
+Any patch is welcome, but if you can, please make sure to update the test suite
 accordingly and also make sure that every test passes. Also, please try to
 stick to the PEPs `8 <http://www.python.org/dev/peps/pep-0008/>`_ and `257
 <http://www.python.org/dev/peps/pep-0257/>`_, as well as use `Epydoc fields
