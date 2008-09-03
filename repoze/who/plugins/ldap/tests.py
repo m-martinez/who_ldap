@@ -34,7 +34,14 @@ from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin, \
 
 
 class Base(unittest.TestCase):
+    """Base test case for the plugins"""
+    
     def _makeEnviron(self, kw=None):
+        """Create a fake WSGI environment
+        
+        This is based on the same method of the test suite of repoze.who.
+        
+        """
         environ = {}
         environ['wsgi.version'] = (1,0)
         if kw is not None:
@@ -43,6 +50,11 @@ class Base(unittest.TestCase):
 
 
 class BaseUidLDAPFormTest(Base):
+    """Base class for tests for L{UidLDAPFormPlugin}-based plugins.
+    
+    This is mostly based on the test case for repoze.who's FormPlugin.
+    
+    """
 
     def _makeFormEnviron(self, login=None, password=None, do_login=False):
         from StringIO import StringIO
@@ -73,11 +85,8 @@ class BaseUidLDAPFormTest(Base):
 
 
 class TestUidLDAPFormPlugin(BaseUidLDAPFormTest):
-    """Tests for the L{UidLDAPFormPlugin} plugin.
+    """Tests for the L{UidLDAPFormPlugin} plugin."""
     
-    This is mostly based on the test case for repoze.who's FormPlugin.
-    
-    """
     def setUp(self):
         self.plugin = UidLDAPFormPlugin('ou=people,dc=example,dc=org',
                                         '__do_login', 'cookie', None)
@@ -87,13 +96,19 @@ class TestUidLDAPFormPlugin(BaseUidLDAPFormTest):
         verifyClass(IIdentifier, UidLDAPFormPlugin)
         verifyClass(IChallenger, UidLDAPFormPlugin)
 
-    def test_identify_nologin(self):
+    def test_identify_no_credentials(self):
+        """The identity dictionary is empty if no credentials are given"""
+        environ = self._makeFormEnviron(do_login=True)
+        identity = self.plugin.identify(environ)
+        self.assertEqual(identity, None)
+
+    def test_identify_no_login(self):
         """The identity dictionary is empty if no user name is given"""
         environ = self._makeFormEnviron(do_login=True, password='hello')
         identity = self.plugin.identify(environ)
         self.assertEqual(identity, None)
 
-    def test_identify_nopassword(self):
+    def test_identify_no_password(self):
         """The identity dictionary is empty if no password is given"""
         environ = self._makeFormEnviron(do_login=True, login='carla')
         identity = self.plugin.identify(environ)
@@ -127,7 +142,7 @@ class TestCustomUidLDAPFormPlugin(BaseUidLDAPFormTest):
         self.assertEqual(identity, expected_identity)
     
 
-class TestLDAPAuthenticatorPlugin(unittest.TestCase):
+class TestLDAPAuthenticatorPlugin(Base):
     fakeuser = {
         'dn': 'uid=carla,ou=people,dc=example,dc=org',
         'uid': 'carla',
@@ -152,13 +167,6 @@ class TestLDAPAuthenticatorPlugin(unittest.TestCase):
     
     def tearDown(self):
         self.connection.delete_s(self.fakeuser['dn'])
-    
-    def _makeEnviron(self, kw=None):
-        environ = {}
-        environ['wsgi.version'] = (1,0)
-        if kw is not None:
-            environ.update(kw)
-        return environ
 
     def test_implements(self):
         verifyClass(IAuthenticator, LDAPAuthenticatorPlugin, tentative=True)
