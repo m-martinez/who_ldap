@@ -6,3 +6,5 @@ repoze.who.plugins.ldap changelog
 The initial release.
 
  - The package provides an LDAP authenticator.
+ - Added FormPlugin and RedirectingFormPlugin based plugins to make the former
+   work with the LDAP authenticator.
