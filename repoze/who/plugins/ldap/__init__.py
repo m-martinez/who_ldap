@@ -21,9 +21,11 @@
 
 """repoze.who LDAP plugin"""
 
-from repoze.who.plugins.ldap.plugins import LDAPAuthenticatorPlugin
+from repoze.who.plugins.ldap.plugins import LDAPAuthenticatorPlugin, \
+                                            UidLDAPFormPlugin
 
-__all__ = ['LDAPAuthenticatorPlugin', 'make_authenticator_plugin']
+__all__ = ['UidLDAPFormPlugin', 'LDAPAuthenticatorPlugin', 
+           'make_authenticator_plugin']
 
 
 def make_authenticator_plugin(ldap_connection=None):
