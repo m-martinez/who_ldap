@@ -35,8 +35,7 @@ http://python-ldap.sourceforge.net/doc/html/installing.html
 Sample configuration
 ====================
 
-TODO: The script below won't work because we need an IIdentifier to build the
-DN. I have to make sure that it actually works.
+TODO: I have to make sure that it actually works.
 
 ::
 
@@ -44,8 +43,8 @@ DN. I have to make sure that it actually works.
     # http://static.repoze.org/whodocs/#module-repoze.who.middleware
     from repoze.who.interfaces import IIdentifier
     from repoze.who.interfaces import IChallenger
-    from repoze.who.plugins.form import FormPlugin
-    from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+    from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin, \
+                                        LDAPFormPlugin
     
     import ldap
     
@@ -53,7 +52,8 @@ DN. I have to make sure that it actually works.
     ldap_conn = ldap.initialize('ldap://ldap.yourcompany.com')
     # Then, you should pass it to repoze.who.plugins.ldap:
     ldap_auth = LDAPAuthenticatorPlugin(ldap_conn)
-    form = FormPlugin('__do_login', rememberer_name='auth_tkt')
+    form = LDAPFormPlugin('ou=employees,dc=yourcompany,dc=com', '__do_login',
+                          rememberer_name='auth_tkt')
     form.classifications = { IIdentifier:['browser'],
                              IChallenger:['browser'] }
     identifiers = [('form', form)]
