@@ -31,8 +31,8 @@ from repoze.who.tests import encode_multipart_formdata, DummyIdentifier
 
 from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin, \
                                     make_authenticator_plugin, \
-                                    UidLDAPFormPlugin, \
-                                    UidLDAPRedirectingFormPlugin
+                                    LDAPFormPlugin, \
+                                    LDAPRedirectingFormPlugin
 
 
 class Base(unittest.TestCase):
@@ -51,8 +51,8 @@ class Base(unittest.TestCase):
         return environ
 
 
-class BaseUidLDAPFormTest(Base):
-    """Base class for tests for L{UidLDAPFormPlugin}-based plugins.
+class BaseLDAPFormTest(Base):
+    """Base class for tests for L{LDAPFormPlugin}-based plugins.
     
     This is mostly based on the test case for repoze.who's FormPlugin.
     
@@ -86,17 +86,17 @@ class BaseUidLDAPFormTest(Base):
         return environ
 
 
-class TestUidLDAPFormPlugin(BaseUidLDAPFormTest):
-    """Tests for the L{UidLDAPFormPlugin} plugin."""
+class TestLDAPFormPlugin(BaseLDAPFormTest):
+    """Tests for the L{LDAPFormPlugin} plugin."""
     
     def setUp(self):
-        self.plugin = UidLDAPFormPlugin('ou=people,dc=example,dc=org',
+        self.plugin = LDAPFormPlugin('ou=people,dc=example,dc=org',
                                         '__do_login', 'cookie', None)
 
     def test_implements(self):
         """The plugin implements the IIdentifier and IChallenger interfaces"""
-        verifyClass(IIdentifier, UidLDAPFormPlugin)
-        verifyClass(IChallenger, UidLDAPFormPlugin)
+        verifyClass(IIdentifier, LDAPFormPlugin)
+        verifyClass(IChallenger, LDAPFormPlugin)
 
     def test_identify_no_credentials(self):
         """The identity dictionary is empty if no credentials are given"""
@@ -126,11 +126,11 @@ class TestUidLDAPFormPlugin(BaseUidLDAPFormTest):
         self.assertEqual(identity, expected_identity)
 
 
-class TestUidLDAPRedirectingFormPlugin(BaseUidLDAPFormTest):
-    """Tests for the L{UidLDAPRedirectingFormPlugin} plugin."""
+class TestLDAPRedirectingFormPlugin(BaseLDAPFormTest):
+    """Tests for the L{LDAPRedirectingFormPlugin} plugin."""
     
     def setUp(self):
-        self.plugin = UidLDAPRedirectingFormPlugin('ou=people,dc=example,dc=org',
+        self.plugin = LDAPRedirectingFormPlugin('ou=people,dc=example,dc=org',
                                         '/', '/login', '/logout', 'cookie')
 
     def _makeFormEnviron(self, login=None, password=None, came_from=None,
@@ -163,8 +163,8 @@ class TestUidLDAPRedirectingFormPlugin(BaseUidLDAPFormTest):
 
     def test_implements(self):
         """The plugin implements the IIdentifier and IChallenger interfaces"""
-        verifyClass(IIdentifier, UidLDAPRedirectingFormPlugin)
-        verifyClass(IChallenger, UidLDAPRedirectingFormPlugin)
+        verifyClass(IIdentifier, LDAPRedirectingFormPlugin)
+        verifyClass(IChallenger, LDAPRedirectingFormPlugin)
 
     def test_identify_no_credentials(self):
         """The identity dictionary is empty if no credentials are given"""
@@ -194,12 +194,12 @@ class TestUidLDAPRedirectingFormPlugin(BaseUidLDAPFormTest):
         self.assertEqual(identity, expected_identity)
 
 
-class TestCustomUidLDAPFormPlugin(BaseUidLDAPFormTest):
-    """Tests for a subclass of L{UidLDAPFormPlugin} that overrides the DN
+class TestCustomLDAPFormPlugin(BaseLDAPFormTest):
+    """Tests for a subclass of L{LDAPFormPlugin} that overrides the DN
     finder"""
     
     def setUp(self):
-        self.plugin = CustomUidLDAPFormPlugin('dc=example,dc=org',
+        self.plugin = CustomLDAPFormPlugin('dc=example,dc=org',
                                               '__do_login', 'cookie', None)
 
     def test_identify_success(self):
@@ -283,8 +283,8 @@ class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
         assert authenticator.__class__ == LDAPAuthenticatorPlugin
 
 
-class CustomUidLDAPFormPlugin(UidLDAPFormPlugin):
-    """Fake class to test that L{UidLDAPFormPlugin._get_dn} can be overriden
+class CustomLDAPFormPlugin(LDAPFormPlugin):
+    """Fake class to test that L{LDAPFormPlugin._get_dn} can be overriden
     with no problems"""
     def _get_dn(self, environ, identity):
         try:
@@ -304,9 +304,9 @@ def suite():
     
     """
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestUidLDAPFormPlugin, "test"))
-    suite.addTest(unittest.makeSuite(TestUidLDAPRedirectingFormPlugin, "test"))
-    suite.addTest(unittest.makeSuite(TestCustomUidLDAPFormPlugin, "test"))
+    suite.addTest(unittest.makeSuite(TestLDAPFormPlugin, "test"))
+    suite.addTest(unittest.makeSuite(TestLDAPRedirectingFormPlugin, "test"))
+    suite.addTest(unittest.makeSuite(TestCustomLDAPFormPlugin, "test"))
     suite.addTest(unittest.makeSuite(TestLDAPAuthenticatorPlugin, "test"))
     suite.addTest(unittest.makeSuite(TestMakeLDAPAuthenticatorPlugin, "test"))
     return suite

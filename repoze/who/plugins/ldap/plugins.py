@@ -21,13 +21,13 @@
 
 """LDAP plugins for repoze.who.
 
-@todo: Write the function that creates an instance of UidLDAPFormPlugin.
-@todo: Find how to put the redundant code of L{UidLDAPFormPlugin} and
-    L{UidLDAPRedirectingFormPlugin} at a single place.
+@todo: Write the function that creates an instance of LDAPFormPlugin.
+@todo: Find how to put the redundant code of L{LDAPFormPlugin} and
+    L{LDAPRedirectingFormPlugin} at a single place.
 
 """
 
-__all__ = ['UidLDAPFormPlugin', 'UidLDAPRedirectingFormPlugin',
+__all__ = ['LDAPFormPlugin', 'LDAPRedirectingFormPlugin',
            'LDAPAuthenticatorPlugin']
 
 from zope.interface import implements
@@ -66,13 +66,13 @@ class _BaseLDAPFormPlugin(object):
                                'environment')
 
 
-class UidLDAPFormPlugin(FormPlugin, _BaseLDAPFormPlugin):
+class LDAPFormPlugin(FormPlugin, _BaseLDAPFormPlugin):
     """Makes L{FormPlugin} work with the LDAP authenticator.
     
     It does the same as L{FormPlugin}, except that its identifier plugin is
     made to work with L{LDAPAuthenticatorPlugin} too.
     
-    To use it, simply replace C{FormPlugin} by C{UidLDAPFormPlugin}. It's safe
+    To use it, simply replace C{FormPlugin} by C{LDAPFormPlugin}. It's safe
     to use it, even without LDAP authentication.
     
     If the default way to find the DN is not suitable for you, you may want to
@@ -95,7 +95,7 @@ class UidLDAPFormPlugin(FormPlugin, _BaseLDAPFormPlugin):
         @type base_dn: C{unicode}
         
         """
-        super(UidLDAPFormPlugin, self).__init__(*args, **kwargs)
+        super(LDAPFormPlugin, self).__init__(*args, **kwargs)
         self.base_dn = base_dn
     
     def identify(self, environ):
@@ -112,7 +112,7 @@ class UidLDAPFormPlugin(FormPlugin, _BaseLDAPFormPlugin):
         @rtype: C{dict}
         
         """
-        identity = super(UidLDAPFormPlugin, self).identify(environ)
+        identity = super(LDAPFormPlugin, self).identify(environ)
         try:
             identity['dn'] = self._get_dn(environ, identity)
             return identity
@@ -120,14 +120,14 @@ class UidLDAPFormPlugin(FormPlugin, _BaseLDAPFormPlugin):
             return identity
 
 
-class UidLDAPRedirectingFormPlugin(RedirectingFormPlugin, _BaseLDAPFormPlugin):
+class LDAPRedirectingFormPlugin(RedirectingFormPlugin, _BaseLDAPFormPlugin):
     """Makes L{RedirectingFormPlugin} work with the LDAP authenticator.
     
     It does the same as L{RedirectingFormPlugin}, except that its identifier 
     plugin is made to work with L{LDAPAuthenticatorPlugin} too.
     
     To use it, simply replace C{RedirectingFormPlugin} by
-    C{UidLDAPRedirectingFormPlugin}. It's safe to use it, even without LDAP
+    C{LDAPRedirectingFormPlugin}. It's safe to use it, even without LDAP
     authentication.
     
     If the default way to find the DN is not suitable for you, you may want to
@@ -151,7 +151,7 @@ class UidLDAPRedirectingFormPlugin(RedirectingFormPlugin, _BaseLDAPFormPlugin):
         @type base_dn: C{unicode}
         
         """
-        super(UidLDAPRedirectingFormPlugin, self).__init__(*args, **kwargs)
+        super(LDAPRedirectingFormPlugin, self).__init__(*args, **kwargs)
         self.base_dn = base_dn
     
     def identify(self, environ):
@@ -168,7 +168,7 @@ class UidLDAPRedirectingFormPlugin(RedirectingFormPlugin, _BaseLDAPFormPlugin):
         @rtype: C{dict}
         
         """
-        identity = super(UidLDAPRedirectingFormPlugin, self).identify(environ)
+        identity = super(LDAPRedirectingFormPlugin, self).identify(environ)
         try:
             identity['dn'] = self._get_dn(environ, identity)
             return identity
