@@ -22,16 +22,19 @@
 """LDAP plugins for repoze.who.
 
 @todo: Write the function that creates an instance of UidLDAPFormPlugin.
+@todo: Find how to put the redundant code of L{UidLDAPFormPlugin} and
+    L{UidLDAPRedirectingFormPlugin} at a single place.
 
 """
 
-__all__ = ['UidLDAPFormPlugin', 'LDAPAuthenticatorPlugin']
+__all__ = ['UidLDAPFormPlugin', 'UidLDAPRedirectingFormPlugin',
+           'LDAPAuthenticatorPlugin']
 
 from zope.interface import implements
 import ldap
 
 from repoze.who.interfaces import IAuthenticator
-from repoze.who.plugins.form import FormPlugin
+from repoze.who.plugins.form import FormPlugin, RedirectingFormPlugin
 
 #{ Identifiers
 
@@ -110,6 +113,62 @@ class UidLDAPFormPlugin(FormPlugin, _BaseLDAPFormPlugin):
         
         """
         identity = super(UidLDAPFormPlugin, self).identify(environ)
+        try:
+            identity['dn'] = self._get_dn(environ, identity)
+            return identity
+        except ValueError:
+            return identity
+
+
+class UidLDAPRedirectingFormPlugin(RedirectingFormPlugin, _BaseLDAPFormPlugin):
+    """Makes L{RedirectingFormPlugin} work with the LDAP authenticator.
+    
+    It does the same as L{RedirectingFormPlugin}, except that its identifier 
+    plugin is made to work with L{LDAPAuthenticatorPlugin} too.
+    
+    To use it, simply replace C{RedirectingFormPlugin} by
+    C{UidLDAPRedirectingFormPlugin}. It's safe to use it, even without LDAP
+    authentication.
+    
+    If the default way to find the DN is not suitable for you, you may want to
+    override L{_get_dn}.
+    
+    @attention: You can use this as the plain L{RedirectingFormPlugin} plugin,
+    so you should check the documentation for L{RedirectingFormPlugin} for more
+    information.
+    
+    """
+    
+    def __init__(self, base_dn, *args, **kwargs):
+        """Make L{RedirectingFormPlugin} work with the LDAP authenticator.
+        
+        The additional arguments are those that should be passed to the
+        constructor of L{RedirectingFormPlugin}.
+        
+        @param base_dn: The base for the I{Distinguished Name}. Something like
+            C{ou=employees,dc=example,dc=org}, to which will be prepended the
+            user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
+        @type base_dn: C{unicode}
+        
+        """
+        super(UidLDAPRedirectingFormPlugin, self).__init__(*args, **kwargs)
+        self.base_dn = base_dn
+    
+    def identify(self, environ):
+        """
+        Identify with L{RedirectingFormPlugin} and find the Distinguished Name.
+        
+        It identifies with L{RedirectingFormPlugin.identify} and includes the
+        I{Distinguished Name} in the C{identity} dictionary.
+        
+        @see: L{_get_dn}
+        @warning: The C{login} must not invalidate the Distinguished Name.
+        @param environ: The WSGI environment.
+        @return: The C{identity} dictionary, including the C{dn} item.
+        @rtype: C{dict}
+        
+        """
+        identity = super(UidLDAPRedirectingFormPlugin, self).identify(environ)
         try:
             identity['dn'] = self._get_dn(environ, identity)
             return identity

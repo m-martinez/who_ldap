@@ -30,7 +30,9 @@ from repoze.who.interfaces import IAuthenticator, IIdentifier, IChallenger
 from repoze.who.tests import encode_multipart_formdata, DummyIdentifier
 
 from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin, \
-                                    make_authenticator_plugin, UidLDAPFormPlugin
+                                    make_authenticator_plugin, \
+                                    UidLDAPFormPlugin, \
+                                    UidLDAPRedirectingFormPlugin
 
 
 class Base(unittest.TestCase):
@@ -118,6 +120,74 @@ class TestUidLDAPFormPlugin(BaseUidLDAPFormTest):
         """The identity dictionary should include the DN"""
         environ = self._makeFormEnviron(do_login=True, login='carla',
                                         password='hello')
+        identity = self.plugin.identify(environ)
+        expected_identity = {'login': 'carla', 'password': 'hello',
+                             'dn': 'uid=carla,ou=people,dc=example,dc=org'}
+        self.assertEqual(identity, expected_identity)
+
+
+class TestUidLDAPRedirectingFormPlugin(BaseUidLDAPFormTest):
+    """Tests for the L{UidLDAPRedirectingFormPlugin} plugin."""
+    
+    def setUp(self):
+        self.plugin = UidLDAPRedirectingFormPlugin('ou=people,dc=example,dc=org',
+                                        '/', '/login', '/logout', 'cookie')
+
+    def _makeFormEnviron(self, login=None, password=None, came_from=None,
+                         path_info='/', identifier=None):
+        from StringIO import StringIO
+        fields = []
+        if login:
+            fields.append(('login', login))
+        if password:
+            fields.append(('password', password))
+        if came_from:
+            fields.append(('came_from', came_from))
+        if identifier is None:
+            credentials = {'login':'chris', 'password':'password'}
+            identifier = DummyIdentifier(credentials)
+        content_type, body = encode_multipart_formdata(fields)
+        extra = {'wsgi.input':StringIO(body),
+                 'wsgi.url_scheme':'http',
+                 'SERVER_NAME':'www.example.com',
+                 'SERVER_PORT':'80',
+                 'CONTENT_TYPE':content_type,
+                 'CONTENT_LENGTH':len(body),
+                 'REQUEST_METHOD':'POST',
+                 'repoze.who.plugins': {'cookie':identifier},
+                 'QUERY_STRING':'default=1',
+                 'PATH_INFO':path_info,
+                 }
+        environ = self._makeEnviron(extra)
+        return environ
+
+    def test_implements(self):
+        """The plugin implements the IIdentifier and IChallenger interfaces"""
+        verifyClass(IIdentifier, UidLDAPRedirectingFormPlugin)
+        verifyClass(IChallenger, UidLDAPRedirectingFormPlugin)
+
+    def test_identify_no_credentials(self):
+        """The identity dictionary is empty if no credentials are given"""
+        environ = self._makeFormEnviron()
+        identity = self.plugin.identify(environ)
+        self.assertEqual(identity, None)
+
+    def test_identify_no_login(self):
+        """The identity dictionary is empty if no user name is given"""
+        environ = self._makeFormEnviron(password='hello')
+        identity = self.plugin.identify(environ)
+        self.assertEqual(identity, None)
+
+    def test_identify_no_password(self):
+        """The identity dictionary is empty if no password is given"""
+        environ = self._makeFormEnviron(login='carla')
+        identity = self.plugin.identify(environ)
+        self.assertEqual(identity, None)
+
+    def test_identify_success(self):
+        """The identity dictionary should include the DN"""
+        environ = self._makeFormEnviron(login='carla', password='hello',
+                                        path_info='/login')
         identity = self.plugin.identify(environ)
         expected_identity = {'login': 'carla', 'password': 'hello',
                              'dn': 'uid=carla,ou=people,dc=example,dc=org'}
@@ -235,6 +305,7 @@ def suite():
     """
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestUidLDAPFormPlugin, "test"))
+    suite.addTest(unittest.makeSuite(TestUidLDAPRedirectingFormPlugin, "test"))
     suite.addTest(unittest.makeSuite(TestCustomUidLDAPFormPlugin, "test"))
     suite.addTest(unittest.makeSuite(TestLDAPAuthenticatorPlugin, "test"))
     suite.addTest(unittest.makeSuite(TestMakeLDAPAuthenticatorPlugin, "test"))
