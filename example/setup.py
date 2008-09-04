@@ -8,7 +8,7 @@ except ImportError:
 setup(
     name='LDAPAuth',
     version='0.1',
-    description='',
+    description='TG2 Demo application for the repoze.who LDAP plugin',
     author='',
     author_email='',
     #url='',

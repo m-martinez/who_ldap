@@ -53,4 +53,4 @@ def init_model(engine):
     #mapper(Reflected, t_reflected)
 
 # Import your model modules here. 
-
+from ldapauth.model.identity import User, Group, Permission

@@ -18,6 +18,13 @@ def setup_config(command, filename, section, vars):
     print "Creating tables"
     model.metadata.create_all(bind=config['pylons.app_globals'].sa_engine)
 
-
+    admin = model.User()
+    admin.user_name = u"Gustavo"
+    admin.password = u'freedomware'
+    admin.email_address = 'gustavo@example.com'
+    
+    model.DBSession.save(admin)
+    
     transaction.commit()
+    
     print "Successfully setup"
