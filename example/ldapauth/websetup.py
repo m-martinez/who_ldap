@@ -14,18 +14,18 @@ def setup_config(command, filename, section, vars):
     conf = appconfig('config:' + filename)
     load_environment(conf.global_conf, conf.local_conf)
     # Load the models
-    from ldapauth import model
-    print "Creating tables"
-    model.metadata.create_all(bind=config['pylons.app_globals'].sa_engine)
+    #from ldapauth import model
+    #print "Creating tables"
+    #model.metadata.create_all(bind=config['pylons.app_globals'].sa_engine)
 
-    admin = model.User()
-    admin.user_name = u"gnarea"
-    admin.display_name = u'Gustavo Narea'
-    admin.password = u'freedomware'
-    admin.email_address = 'gustavo@example.com'
+    print """
+================= Demo Project for repoze.who.plugins.ldap ====================
+
+You should setup this demo by creating the relevant users and groups in your
+LDAP server, and then adjusting the relevant parameters in the "who.ini" file.
+
+"""
     
-    model.DBSession.save(admin)
-    
-    transaction.commit()
+    #transaction.commit()
     
     print "Successfully setup"

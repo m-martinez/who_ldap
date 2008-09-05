@@ -129,11 +129,13 @@ h1,h2,h3,h4,h5,h6 {
 .headtext {
   color: white;
   font: x-small "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif;
-  font-size: 44px;
+  font-size: 3.2em;
+  font-weight: bold;
   padding-left: 20px;
   padding-top: 20px;
   padding-right: 20px;
   margin-bottom: 0px;
+  text-align: center;
 }
 
 .currentpage {
