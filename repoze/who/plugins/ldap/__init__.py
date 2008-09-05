@@ -19,7 +19,11 @@
 # You should have received a copy of the GNU General Public License along with
 # repoze.who.plugins.ldap. If not, see <http://www.gnu.org/licenses/>.
 
-"""repoze.who LDAP plugin"""
+"""repoze.who LDAP plugin
+
+G{packagetree}
+
+"""
 
 import ldap
 
