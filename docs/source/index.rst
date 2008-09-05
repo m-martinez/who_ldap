@@ -83,6 +83,14 @@ TODO: I have to make sure that it actually works.
     return middleware
 
 
+API Documentation
+=================
+You can browse `the online API documentation
+<http://code.gustavonarea.net/repoze.who.plugins.ldap/api/>`_, or generate it 
+by yourself with Epydoc from the root directory of the project:
+
+    epydoc --config=docs/epydoc.conf repoze
+
 Links
 ======
 
