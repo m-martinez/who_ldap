@@ -134,6 +134,16 @@ class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
         conn = fakeldap.initialize('ldap://example.org')
         authenticator = make_authenticator_plugin(conn, 'dc=example,dc=org')
         assert authenticator.__class__ == LDAPAuthenticatorPlugin
+    
+    def test_connection_is_str(self):
+        authenticator = make_authenticator_plugin('ldap://example.org',
+                                                  'dc=example,dc=org')
+        assert authenticator.__class__ == LDAPAuthenticatorPlugin
+    
+    def test_connection_is_unicode(self):
+        authenticator = make_authenticator_plugin(u'ldap://example.org',
+                                                  'dc=example,dc=org')
+        assert authenticator.__class__ == LDAPAuthenticatorPlugin
 
 
 class CustomLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):

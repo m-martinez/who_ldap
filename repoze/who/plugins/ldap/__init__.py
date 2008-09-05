@@ -21,15 +21,33 @@
 
 """repoze.who LDAP plugin"""
 
+import ldap
+
 from repoze.who.plugins.ldap.plugins import LDAPAuthenticatorPlugin
-                                            
 
 __all__ = ['LDAPAuthenticatorPlugin', 'make_authenticator_plugin']
 
 
 def make_authenticator_plugin(ldap_connection=None, base_dn=None):
-    if ldap_connection is None:
+    """
+    Make an LDAPAuthenticatorPlugin plugin instance.
+    
+    @param ldap_connection: An LDAP connection object; if you pass an string,
+        it will create the connection for you.
+    @type ldap_connection: C{str}, C{unicode} or C{ldap.LDAPObject}
+    @param base_dn: The base for the Distinguished Name.
+    @type base_dn: C{str} or C{unicode}
+    @return: An LDAP authenticator.
+    @rtype: L{LDAPAuthenticatorPlugin}
+    @raise ValueError: If at least one of the parameters is not defined.
+    
+    """
+    if isinstance(ldap_connection, str) or isinstance(ldap_connection, unicode):
+        ldap_connection = ldap.initialize(ldap_connection)
+    elif ldap_connection is None:
         raise ValueError('ldap_connection must be specified')
+    
     if base_dn is None:
         raise ValueError('A base Distinguished Name must be specified')
+    
     return LDAPAuthenticatorPlugin(ldap_connection, base_dn)
