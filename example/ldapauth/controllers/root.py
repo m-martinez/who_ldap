@@ -17,8 +17,8 @@ class RootController(BaseController):
     def about(self):
         if request.environ.get('repoze.who.identity') == None:
             abort(401)
-        user = request.environ.get('repoze.who.identity')['user']
-        flash("You are %s" % user.user_name)
+        user = request.environ['repoze.who.identity']['repoze.who.userid']
+        flash("You are %s" % user)
         return dict(page='about')
 
     @expose('ldapauth.templates.index')
