@@ -66,8 +66,8 @@ class LDAPAuthenticatorPlugin(object):
 
     # IAuthenticatorPlugin
     def authenticate(self, environ, identity):
-        """Authenticate a given user with the Distinguished Name (DN) and
-        password defined in 'identity'.
+        """Authenticate a given user with the UID and password defined in
+        'identity'.
         
         @attention: The uid is not returned because it may not be unique; the
             DN, on the contrary, is always unique.
