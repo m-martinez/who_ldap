@@ -1,10 +1,10 @@
-repoze.who.plugins.ldap changelog
+repoze.who.plugins.ldap Changelog
 =================================
 
 1.0 (*unreleased*)
 -------------------------------
 The initial release.
 
- - The package provides an LDAP authenticator.
- - Added FormPlugin and RedirectingFormPlugin based plugins to make the former
-   work with the LDAP authenticator.
+ - Provided the LDAP authenticator, which is compatible with identifiers that
+   define the 'login' item in the identity dict.
+ - Included Turbogears 2 demo project, using the plugin.

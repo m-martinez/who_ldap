@@ -21,16 +21,15 @@
 
 """repoze.who LDAP plugin"""
 
-from repoze.who.plugins.ldap.plugins import LDAPFormPlugin, \
-                                            LDAPRedirectingFormPlugin, \
-                                            LDAPAuthenticatorPlugin
+from repoze.who.plugins.ldap.plugins import LDAPAuthenticatorPlugin
                                             
 
-__all__ = ['LDAPFormPlugin', 'LDAPRedirectingFormPlugin',
-           'LDAPAuthenticatorPlugin', 'make_authenticator_plugin']
+__all__ = ['LDAPAuthenticatorPlugin', 'make_authenticator_plugin']
 
 
-def make_authenticator_plugin(ldap_connection=None):
+def make_authenticator_plugin(ldap_connection=None, base_dn=None):
     if ldap_connection is None:
         raise ValueError('ldap_connection must be specified')
-    return LDAPAuthenticatorPlugin(ldap_connection)
+    if base_dn is None:
+        raise ValueError('A base Distinguished Name must be specified')
+    return LDAPAuthenticatorPlugin(ldap_connection, base_dn)
