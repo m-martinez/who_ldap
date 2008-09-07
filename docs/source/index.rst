@@ -51,6 +51,17 @@ Development-related links include:
  - `Bazaar branches <https://code.launchpad.net/repoze.who.plugins.ldap>`_.
 
 
+Applications using the plugin
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The repoze.who LDAP plugin is being used in the following applications:
+
+ * `Animador <https://tracker.gnulinuxmatters.org/wiki/Animador>`_.
+
+If your're using this plugin in your application(s), please let me know! Your
+implementation may be useful for somebody else.
+
+
 Contributing
 ============
 
