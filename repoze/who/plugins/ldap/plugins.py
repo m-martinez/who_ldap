@@ -35,7 +35,7 @@ class LDAPAuthenticatorPlugin(object):
 
     implements(IAuthenticator)
 
-    def __init__(self, ldap_connection, base_dn):
+    def __init__(self, ldap_connection=None, base_dn=None):
         """Create an LDAP authentication plugin.
         
         By passing an existing LDAPObject, you're free to use the LDAP
@@ -47,14 +47,29 @@ class LDAPAuthenticatorPlugin(object):
         This plugin is compatible with any identifier plugin that defines the
         C{login} and C{password} items in the I{identity} dictionary.
         
+        While the parameters seem to be optional, they are actually mandatory.
+        They have been made optional so that in an INI file they can be defined
+        by their keywords and also to provide more meaningful error messages
+        when they are not present.
+        
         @param ldap_connection: An initialized LDAP connection.
         @type ldap_connection: ldap.LDAPObject
         @param base_dn: The base for the I{Distinguished Name}. Something like
             C{ou=employees,dc=example,dc=org}, to which will be prepended the
             user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
         @type base_dn: C{unicode}
+        @raise ValueError: If at least one of the parameters is not defined.
         
         """
+        if isinstance(ldap_connection, str) or isinstance(ldap_connection,
+                                                          unicode):
+            ldap_connection = ldap.initialize(ldap_connection)
+        elif ldap_connection is None:
+            raise ValueError('ldap_connection must be specified')
+        
+        if base_dn is None:
+            raise ValueError('A base Distinguished Name must be specified')
+        
         self.ldap_connection = ldap_connection
         self.base_dn = base_dn
 

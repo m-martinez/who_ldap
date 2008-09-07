@@ -28,8 +28,7 @@ from ldap import modlist
 from zope.interface.verify import verifyClass
 from repoze.who.interfaces import IAuthenticator
 
-from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin, \
-                                    make_authenticator_plugin
+from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
 
 
 class Base(unittest.TestCase):
@@ -46,6 +45,25 @@ class Base(unittest.TestCase):
         if kw is not None:
             environ.update(kw)
         return environ
+
+
+class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
+    def test_without_connection(self):
+        self.assertRaises(ValueError, LDAPAuthenticatorPlugin, None,
+                          'dc=example,dc=org')
+    def test_without_base_dn(self):
+        conn = fakeldap.initialize('ldap://example.org')
+        self.assertRaises(ValueError, LDAPAuthenticatorPlugin, conn)
+    
+    def test_with_connection(self):
+        conn = fakeldap.initialize('ldap://example.org')
+        LDAPAuthenticatorPlugin(conn, 'dc=example,dc=org')
+    
+    def test_connection_is_str(self):
+        LDAPAuthenticatorPlugin('ldap://example.org', 'dc=example,dc=org')
+    
+    def test_connection_is_unicode(self):
+        LDAPAuthenticatorPlugin(u'ldap://example.org', 'dc=example,dc=org')
 
 
 class TestLDAPAuthenticatorPlugin(Base):
@@ -120,32 +138,6 @@ class TestLDAPAuthenticatorPlugin(Base):
         self.assertEqual(result, expected)
 
 
-class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
-    def test_without_connection(self):
-        f = make_authenticator_plugin
-        self.assertRaises(ValueError, make_authenticator_plugin, None,
-                          'dc=example,dc=org')
-    def test_without_base_dn(self):
-        f = make_authenticator_plugin
-        conn = fakeldap.initialize('ldap://example.org')
-        self.assertRaises(ValueError, make_authenticator_plugin, conn)
-    
-    def test_with_connection(self):
-        conn = fakeldap.initialize('ldap://example.org')
-        authenticator = make_authenticator_plugin(conn, 'dc=example,dc=org')
-        assert authenticator.__class__ == LDAPAuthenticatorPlugin
-    
-    def test_connection_is_str(self):
-        authenticator = make_authenticator_plugin('ldap://example.org',
-                                                  'dc=example,dc=org')
-        assert authenticator.__class__ == LDAPAuthenticatorPlugin
-    
-    def test_connection_is_unicode(self):
-        authenticator = make_authenticator_plugin(u'ldap://example.org',
-                                                  'dc=example,dc=org')
-        assert authenticator.__class__ == LDAPAuthenticatorPlugin
-
-
 class CustomLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
     """Fake class to test that L{LDAPAuthenticatorPlugin._get_dn} can be
     overriden with no problems"""
@@ -166,8 +158,8 @@ def suite():
     
     """
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestLDAPAuthenticatorPlugin, "test"))
     suite.addTest(unittest.makeSuite(TestMakeLDAPAuthenticatorPlugin, "test"))
+    suite.addTest(unittest.makeSuite(TestLDAPAuthenticatorPlugin, "test"))
     return suite
 
 

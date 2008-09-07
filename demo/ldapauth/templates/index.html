@@ -33,7 +33,7 @@
 <pre>
 # ...
 [plugin:ldap_auth]
-use = repoze.who.plugins.ldap:make_authenticator_plugin
+use = repoze.who.plugins.ldap:LDAPAuthenticatorPlugin
 ldap_connection = ldap://ldap.gnu.org
 base_dn = ou=developers,dc=gnu,dc=org
 # ...
