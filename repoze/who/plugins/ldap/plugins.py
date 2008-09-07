@@ -19,13 +19,7 @@
 # You should have received a copy of the GNU General Public License along with
 # repoze.who.plugins.ldap. If not, see <http://www.gnu.org/licenses/>.
 
-"""LDAP plugins for repoze.who.
-
-@todo: Write the function that creates an instance of LDAPFormPlugin.
-@todo: Find how to put the redundant code of L{LDAPFormPlugin} and
-    L{LDAPRedirectingFormPlugin} at a single place.
-
-"""
+"""LDAP plugins for repoze.who."""
 
 __all__ = ['LDAPAuthenticatorPlugin']
 
