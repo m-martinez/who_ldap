@@ -111,9 +111,9 @@ class LDAPAuthenticatorPlugin(object):
             default doesn't meet your requirements. If you do so, make sure to
             raise a C{ValueError} exception if the operation is not successful.
         @param environ: The WSGI environment.
-        @param identity: The identity dictionary, provided by L{identify}.
+        @param identity: The identity dictionary.
         @return: The Distinguished Name (DN)
-        @rtype: c{unicode}
+        @rtype: C{unicode}
         @raise ValueError: If the C{login} key is not in the I{identity} dict.
         
         """

@@ -48,6 +48,8 @@ class Base(unittest.TestCase):
 
 
 class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
+    """Tests for the constructor of the L{LDAPAuthenticatorPlugin} plugin"""
+    
     def test_without_connection(self):
         self.assertRaises(ValueError, LDAPAuthenticatorPlugin, None,
                           'dc=example,dc=org')
@@ -68,6 +70,8 @@ class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
 
 
 class TestLDAPAuthenticatorPlugin(Base):
+    """Tests for the L{LDAPAuthenticatorPlugin} IAuthenticator plugin"""
+    
     base_dn = 'ou=people,dc=example,dc=org'
     
     fakeuser = {
@@ -154,7 +158,7 @@ def suite():
     """
     Return the test suite.
     
-    @return: The test suite for the data model.
+    @return: The test suite for the plugin.
     @rtype: C{unittest.TestSuite}
     
     """
