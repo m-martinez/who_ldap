@@ -25,8 +25,16 @@ G{packagetree}
 
 """
 
+from os import path
+
 import ldap
 
 from repoze.who.plugins.ldap.plugins import LDAPAuthenticatorPlugin
 
 __all__ = ['LDAPAuthenticatorPlugin']
+
+# Defining the version number of the plugin:
+root = path.abspath(path.dirname(
+                path.dirname(path.dirname(path.dirname(path.dirname(__file__))))
+       ))
+__version__ = open(path.join(root, 'VERSION')).readline().rstrip()
