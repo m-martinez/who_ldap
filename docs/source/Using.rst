@@ -260,7 +260,7 @@ If you're configuring `repoze.who` via Python code, you can use the code below::
     ldap_auth = LDAPAuthenticatorPlugin('ldap://ldap.yourcompany.com',
                                         'ou=developers,dc=yourcompany,dc=com')
 
-Although if you're using a custom LDAP authenticator, you would have to use the
+But if you're using a custom LDAP authenticator, you would have to use the
 code below instead::
 
     ldap_auth = YourCompanyLDAPAuthenticatorPlugin('ldap://ldap.yourcompany.com',
