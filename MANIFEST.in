@@ -6,6 +6,7 @@ include MANIFEST.in
 
 recursive-include docs/ *
 prune docs/build
+prune docs/api
 
 recursive-include demo/ *
 recursive-exclude demo/ *.egg *.db *.po

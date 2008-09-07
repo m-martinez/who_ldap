@@ -21,6 +21,18 @@
 
 """repoze.who LDAP plugin
 
+U{repoze.who.plugins.ldap <http://code.gustavonarea.net/repoze.who.plugins.ldap/>}
+is a Python package that provides U{repoze.who 
+<http://static.repoze.org/whodocs/>} plugins for U{LDAP 
+<http://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol>}
+authentication in U{WSGI 
+<http://en.wikipedia.org/wiki/Web_Server_Gateway_Interface>}
+applications. It can be used with any LDAP server and any WSGI framework (or no
+framework at all).
+
+For information on how to get started, you may want to visit its web site:
+U{http://code.gustavonarea.net/repoze.who.plugins.ldap/}
+
 G{packagetree}
 
 """
