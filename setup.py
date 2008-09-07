@@ -49,16 +49,16 @@ setup(
     url="http://code.gustavonarea.net/repoze.who.plugins.ldap/",
     download_url="https://launchpad.net/repoze.who.plugins.ldap/+download",
     license="GNU General Public License v3",
-    packages=find_packages(),
     include_package_data=True,
+    packages=find_packages(exclude=["*.tests", "demo", "demo.*"]),
     namespace_packages=['repoze', 'repoze.who', 'repoze.who.plugins'],
     zip_safe=False,
-    tests_require = 'dataflake.ldapconnection>=0.3',
+    tests_require = ['dataflake.ldapconnection>=0.3'],
     install_requires=[
         'repoze.who>=1.0.6',
         'python-ldap>=2.3.5',
         'setuptools',
         'zope.interface'
         ],
-    test_suite="repoze.who.plugins.ldap.tests"
+    test_suite="repoze.who.plugins.ldap.tests.suite"
     )

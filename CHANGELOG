@@ -7,4 +7,6 @@ The initial release.
 
  - Provided the LDAP authenticator, which is compatible with identifiers that
    define the 'login' item in the identity dict.
- - Included Turbogears 2 demo project, using the plugin.
+ - Documented how to install and use the plugins.
+ - Included Turbogears 2 demo project, using the plugin. There is also a section
+   in the documentation to explain how the demo works.
