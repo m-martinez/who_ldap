@@ -3,10 +3,12 @@ include CHANGELOG
 include VERSION
 include LICENSE
 include MANIFEST.in
+
 recursive-include docs/ *
 prune docs/build
+
 recursive-include demo/ *
-recursive-exclude demo/ *.egg *.db *.po *.mo
+recursive-exclude demo/ *.egg *.db *.po
 prune demo/LDAPAuth.egg-info
 prune demo/ez_setup
 
