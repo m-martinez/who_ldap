@@ -53,7 +53,8 @@ class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
                           'dc=example,dc=org')
     def test_without_base_dn(self):
         conn = fakeldap.initialize('ldap://example.org')
-        self.assertRaises(ValueError, LDAPAuthenticatorPlugin, conn)
+        self.assertRaises(TypeError, LDAPAuthenticatorPlugin, conn)
+        self.assertRaises(ValueError, LDAPAuthenticatorPlugin, conn, None)
     
     def test_with_connection(self):
         conn = fakeldap.initialize('ldap://example.org')

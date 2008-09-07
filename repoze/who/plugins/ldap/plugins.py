@@ -35,7 +35,7 @@ class LDAPAuthenticatorPlugin(object):
 
     implements(IAuthenticator)
 
-    def __init__(self, ldap_connection=None, base_dn=None):
+    def __init__(self, ldap_connection, base_dn):
         """Create an LDAP authentication plugin.
         
         By passing an existing LDAPObject, you're free to use the LDAP
@@ -46,11 +46,6 @@ class LDAPAuthenticatorPlugin(object):
         
         This plugin is compatible with any identifier plugin that defines the
         C{login} and C{password} items in the I{identity} dictionary.
-        
-        While the parameters seem to be optional, they are actually mandatory.
-        They have been made optional so that in an INI file they can be defined
-        by their keywords and also to provide more meaningful error messages
-        when they are not present.
         
         @param ldap_connection: An initialized LDAP connection.
         @type ldap_connection: ldap.LDAPObject
