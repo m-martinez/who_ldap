@@ -198,9 +198,10 @@ def make_ldap_connection(ldap_connection):
     
     @param ldap_connection: The LDAP connection object or the LDAP URL of the
         server to be connected to.
-    @type ldap_connection: C{ldap.LDAPObject}, C{str} or C{unicode}
+    @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject}, C{str} or
+        C{unicode}
     @return: The LDAP connection object.
-    @rtype: C{ldap.LDAPObject}
+    @rtype: C{ldap.ldapobject.SimpleLDAPObject}
     @raise ValueError: If C{ldap_connection} is C{None}.
     
     """
