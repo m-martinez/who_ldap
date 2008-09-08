@@ -47,6 +47,9 @@ class Base(unittest.TestCase):
         return environ
 
 
+#{ Test cases for the plugins
+
+
 class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
     """Tests for the constructor of the L{LDAPAuthenticatorPlugin} plugin"""
     
@@ -143,6 +146,12 @@ class TestLDAPAuthenticatorPlugin(Base):
         self.assertEqual(result, expected)
 
 
+# Test cases for plugin utilities
+
+
+#{ Fixtures
+
+
 class CustomLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
     """Fake class to test that L{LDAPAuthenticatorPlugin._get_dn} can be
     overriden with no problems"""
@@ -152,6 +161,9 @@ class CustomLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
         except (KeyError, TypeError):
             raise ValueError, ('Could not find the DN from the identity and '
                                'environment')
+
+
+#}
 
 
 def suite():
