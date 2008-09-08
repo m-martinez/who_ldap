@@ -21,7 +21,7 @@
 
 """LDAP plugins for repoze.who."""
 
-__all__ = ['LDAPAuthenticatorPlugin']
+__all__ = ['LDAPAuthenticatorPlugin', 'LDAPAttributesPlugin']
 
 from zope.interface import implements
 import ldap
@@ -30,6 +30,7 @@ from repoze.who.interfaces import IAuthenticator
 
 
 #{ Authenticators
+
 
 class LDAPAuthenticatorPlugin(object):
 
@@ -56,16 +57,9 @@ class LDAPAuthenticatorPlugin(object):
         @raise ValueError: If at least one of the parameters is not defined.
         
         """
-        if isinstance(ldap_connection, str) or isinstance(ldap_connection,
-                                                          unicode):
-            ldap_connection = ldap.initialize(ldap_connection)
-        elif ldap_connection is None:
-            raise ValueError('ldap_connection must be specified')
-        
         if base_dn is None:
             raise ValueError('A base Distinguished Name must be specified')
-        
-        self.ldap_connection = ldap_connection
+        self.ldap_connection = make_ldap_connection(ldap_connection)
         self.base_dn = base_dn
 
     # IAuthenticatorPlugin
@@ -124,6 +118,39 @@ class LDAPAuthenticatorPlugin(object):
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, id(self))
+
+
+#{ Metadata providers
+
+
+class LDAPAttributesPlugin(object):
+    def __init__(self, ldap_connection, attributes):
+        pass
+
+
+#{ Utilities
+
+
+def make_ldap_connection(ldap_connection):
+    """Return an LDAP connection object to the specified server.
+    
+    If the C{ldap_connection} is already an LDAP connection object, it will
+    be returned as is. If it's an LDAP URL, it will return an LDAP connection
+    to the LDAP server specified in the URL.
+    
+    @param ldap_connection: The LDAP connection object or the LDAP URL of the
+        server to be connected to.
+    @type ldap_connection: C{ldap.LDAPObject}, C{str} or C{unicode}
+    @return: The LDAP connection object.
+    @rtype: C{ldap.LDAPObject}
+    @raise ValueError: If C{ldap_connection} is C{None}.
+    
+    """
+    if isinstance(ldap_connection, str) or isinstance(ldap_connection, unicode):
+        return ldap.initialize(ldap_connection)
+    elif ldap_connection is None:
+        raise ValueError('An LDAP connection must be specified')
+    return ldap_connection
 
 
 #}

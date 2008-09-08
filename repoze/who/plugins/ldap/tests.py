@@ -25,10 +25,12 @@ import unittest
 
 from dataflake.ldapconnection.tests import fakeldap
 from ldap import modlist
+from ldap.ldapobject import SimpleLDAPObject
 from zope.interface.verify import verifyClass
 from repoze.who.interfaces import IAuthenticator
 
 from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+from repoze.who.plugins.ldap.plugins import make_ldap_connection
 
 
 class Base(unittest.TestCase):
@@ -65,11 +67,8 @@ class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
         conn = fakeldap.initialize('ldap://example.org')
         LDAPAuthenticatorPlugin(conn, 'dc=example,dc=org')
     
-    def test_connection_is_str(self):
+    def test_connection_is_url(self):
         LDAPAuthenticatorPlugin('ldap://example.org', 'dc=example,dc=org')
-    
-    def test_connection_is_unicode(self):
-        LDAPAuthenticatorPlugin(u'ldap://example.org', 'dc=example,dc=org')
 
 
 class TestLDAPAuthenticatorPlugin(Base):
@@ -149,6 +148,25 @@ class TestLDAPAuthenticatorPlugin(Base):
 # Test cases for plugin utilities
 
 
+class TestLDAPConnectionFactory(unittest.TestCase):
+    """Tests for L{make_ldap_connection}"""
+    
+    def test_connection_is_object(self):
+        conn = fakeldap.initialize('ldap://example.org')
+        self.assertEqual(make_ldap_connection(conn), conn)
+    
+    def test_connection_is_str(self):
+        conn = make_ldap_connection('ldap://example.org')
+        self.assertTrue(isinstance(conn, SimpleLDAPObject))
+    
+    def test_connection_is_unicode(self):
+        conn = make_ldap_connection(u'ldap://example.org')
+        self.assertTrue(isinstance(conn, SimpleLDAPObject))
+    
+    def test_connection_is_none(self):
+        self.assertRaises(ValueError, make_ldap_connection, None)
+
+
 #{ Fixtures
 
 
@@ -177,6 +195,7 @@ def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestMakeLDAPAuthenticatorPlugin, "test"))
     suite.addTest(unittest.makeSuite(TestLDAPAuthenticatorPlugin, "test"))
+    suite.addTest(unittest.makeSuite(TestLDAPConnectionFactory, "test"))
     return suite
 
 
