@@ -92,3 +92,9 @@ code below, for example::
 
     from pylons import request
     dn = request.environ['repoze.who.identity']['repoze.who.userid']
+
+This demo also features the :class:`LDAPAttributesPlugin` metadata provider,
+which is used in the private page to show all the available LDAP attributes
+for your entry in the LDAP server you are using. Such metadata is loaded in::
+
+    request.environ['repoze.who.identity']

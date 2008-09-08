@@ -163,11 +163,8 @@ on how to implement `repoze.who` in the framework you are using:
 Using the LDAP plugins for repoze.who
 =====================================
 
-Once you've setup `repoze.who`, you're ready to use its LDAP plugins. Below
+Once you've setup `repoze.who`, you'll be ready to use its LDAP plugins. Below
 you will find how to use them in your application.
-
-The LDAP Authenticator
-~~~~~~~~~~~~~~~~~~~~~~
 
 .. module:: repoze.who.plugins.ldap
 
@@ -175,8 +172,8 @@ The LDAP Authenticator
 
     This is the main plugin. It's in charge of the LDAP authentication itself
     using the LDAP connection object provided in the constructor
-    (**ldap_connection**) — which can be an LDAP URL or an `ldap.LDAPObject`
-    instance.
+    (**ldap_connection**) — which can be an LDAP URL or an
+    `ldap.ldapobject.SimpleLDAPObject` instance.
     
     It connects to the specified LDAP server and tries to `bind` with the
     `Distinguished Name` (DN) made by joining the `login` in the `identity`
@@ -192,41 +189,66 @@ The LDAP Authenticator
     defines the `login` and `password` items in the `identity` dictionary (the
     `identifier plugins` provided by the built-in `repoze.who.plugins.form`
     plugin are some of them).
-    
-    You may change the way the DN is created by subclassing
-    :class:`LDAPAuthenticatorPlugin` to override the *_get_dn* method. For
-    example, say in your company (with `dc=yourcompany,dc.com` as its DN)
-    everybody belongs to the `Organizational Unit` (OU) **employees**
-    (`ou=employees`), except the shareholders who belong to the OU
-    **shareholders** (`ou=shareholders`)::
-    
-        class YourCompanyLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
-            """Sample LDAP authenticator adapted to your company."""
-            
-            shareholders = ('lgarcia, 'mferreira', 'cnarea')
-            """Set of shareholders of the company"""
-            
-            def _get_dn(self, environ, identity):
-                try:
-                    if identity['login'] in self.shareholders:
-                        ou = 'shareholders'
-                    else:
-                        ou = 'employees'
-                    return u'uid=%s,ou=%s,%s' % (identity['login'], ou,
-                                                 self.base_dn)
-                except (KeyError, TypeError):
-                    raise ValueError, ('Could not find the DN from the identity '
-                                       'and environment')
 
-    It is possibly an useless example on how to customize the way the DN is
-    found, but it's enough to show how to override it.
+.. class:: LDAPAttributesPlugin(ldap_connection[, attributes=None[, filterstr='(objectClass=*)']])
+
+    This plugin enables you to load data for the authenticated user 
+    automatically and have it available from the WSGI environment — in the
+    `identity` dictionary, specifically.
     
-    This is a highly customizable plugin which can be adapted to your needs with
-    no hassle. You could also include in the login form a `select` field for
-    people to select the department they belong to, being the key of such
-    departments the `Organizational Unit` in the LDAP server; then, in the
-    **_get_dn** method you would get such value from the WSGI environment
-    object (**environ**).
+    **ldap_connection** represents the connection to the LDAP server, which,
+    as in :class:`LDAPAuthenticatorPlugin`, can be either an LDAP URL or an
+    instance of `ldap.ldapobject.SimpleLDAPObject`. **attributes** represents
+    the list of user's attributes that you would like to fetch from the LDAP
+    server; it can be an iterable, an string where the attributes are separated
+    by commas, or *None* to fetch all the available attributes.
+    
+    By default it loads the attributes available for *any* entry whose *DN* is
+    the same as the one found by :class:`LDAPAuthenticatorPlugin`, which is
+    desired in most situations. However, if you would like to exclude some
+    entries, you may setup a filter by means of the **filterstr** parameter,
+    which is an string whose format is defined by `RFC 4515 - Lightweight 
+    Directory Access Protocol (LDAP): String Representation of Search Filters
+    <http://www.faqs.org/rfcs/rfc4515.html>`_.
+
+
+The LDAP Authenticator
+~~~~~~~~~~~~~~~~~~~~~~
+
+It is a highly customizable plugin which can be adapted to your needs with
+no hassle. You could also include in the login form a `select` field for
+people to select the department they belong to, being the key of such
+departments the `Organizational Unit` in the LDAP server; then, in the
+**_get_dn** method you would get such value from the WSGI environment
+object (**environ**).
+
+You may change the way the DN is created by subclassing
+:class:`LDAPAuthenticatorPlugin` to override the *_get_dn* method. For
+example, say in your company (with `dc=yourcompany,dc.com` as its DN)
+everybody belongs to the `Organizational Unit` (OU) **employees**
+(`ou=employees`), except the shareholders who belong to the OU
+**shareholders** (`ou=shareholders`)::
+
+    class YourCompanyLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
+        """Sample LDAP authenticator adapted to your company."""
+        
+        shareholders = ('lgarcia, 'mferreira', 'cnarea')
+        """Set of shareholders of the company"""
+        
+        def _get_dn(self, environ, identity):
+            try:
+                if identity['login'] in self.shareholders:
+                    ou = 'shareholders'
+                else:
+                    ou = 'employees'
+                return u'uid=%s,ou=%s,%s' % (identity['login'], ou,
+                                             self.base_dn)
+            except (KeyError, TypeError):
+                raise ValueError, ('Could not find the DN from the identity '
+                                   'and environment')
+
+It is possibly an useless example on how to customize the way the DN is
+found, but it's enough to show how to override it.
 
 
 Configuring :class:`LDAPAuthenticatorPlugin` from an INI file
@@ -271,3 +293,51 @@ Finally, add this authenticator to the set of authenticators::
     authenticators = [('ldap_auth', ldap_auth)]
 
 As in the example above.
+
+
+The LDAP attribute loader
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is no advanced usage for this plugin, and hopefully you would never need
+to subclass it to suit your needs.
+
+Below you will learn how to use it.
+
+
+Configuring :class:`LDAPAttributesPlugin` from an INI file
+-------------------------------------------------------------
+
+To configure this plugin from an INI file, you'd have to include a section like
+this::
+
+    [plugin:ldap_attributes]
+    use = repoze.who.plugins.ldap:LDAPAttributesPlugin
+    ldap_connection = ldap://ldap.yourcompany.com
+    attributes = cn,sn,mail
+
+If instead of loading the *Common Name*, *surname* and *email*, as with the
+settings above, you'd prefer to load all the available attributes for the
+authenticated user, you'd just have to remove the *attributes* directive.
+
+Finally, add the plugin to the set of metadata providers::
+
+    [mdproviders]
+    plugins =
+            ldap_attributes
+
+
+Configuring :class:`LDAPAttributesPlugin` from Python code
+-------------------------------------------------------------
+
+If you want to configure it via Python code, you can use the code below::
+
+    ldap_attributes = LDAPAttributesPlugin('ldap://ldap.yourcompany.com',
+                                           ['cn', 'sn', 'email'])
+
+Again, if you would prefer to load all the available attributes for the user,
+you just have to remove the second parameter.
+
+Finally, add this authenticator to the set of metadata providers in your Python
+code::
+
+    mdproviders = [('ldap_attributes', ldap_attributes)]
