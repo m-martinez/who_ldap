@@ -39,6 +39,7 @@ G{packagetree}
 
 import ldap
 
-from repoze.who.plugins.ldap.plugins import LDAPAuthenticatorPlugin
+from repoze.who.plugins.ldap.plugins import LDAPAuthenticatorPlugin, \
+                                            LDAPAttributesPlugin
 
-__all__ = ['LDAPAuthenticatorPlugin']
+__all__ = ['LDAPAuthenticatorPlugin', 'LDAPAttributesPlugin']

@@ -26,7 +26,7 @@ __all__ = ['LDAPAuthenticatorPlugin', 'LDAPAttributesPlugin']
 from zope.interface import implements
 import ldap
 
-from repoze.who.interfaces import IAuthenticator
+from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 
 
 #{ Authenticators
@@ -49,7 +49,7 @@ class LDAPAuthenticatorPlugin(object):
         C{login} and C{password} items in the I{identity} dictionary.
         
         @param ldap_connection: An initialized LDAP connection.
-        @type ldap_connection: ldap.LDAPObject
+        @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject}
         @param base_dn: The base for the I{Distinguished Name}. Something like
             C{ou=employees,dc=example,dc=org}, to which will be prepended the
             user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
@@ -124,8 +124,66 @@ class LDAPAuthenticatorPlugin(object):
 
 
 class LDAPAttributesPlugin(object):
-    def __init__(self, ldap_connection, attributes):
-        pass
+    """Loads LDAP attributes of the authenticated user."""
+    
+    implements(IMetadataProvider)
+    
+    def __init__(self, ldap_connection, attributes=None,
+                 filterstr='(objectClass=*)'):
+        """
+        Fetch LDAP attributes of the authenticated user.
+        
+        @param ldap_connection: The LDAP connection to use to fetch this data.
+        @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject} or C{str}
+        @param attributes: The authenticated user's LDAP attributes you want to
+            use in your application; an interable or a comma-separate list of
+            attributes in a string, or C{None} to fetch them all.
+        @type attributes: C{iterable} or C{str}
+        @param filterstr: A filter for the search, as documented in U{RFC4515
+            <http://www.faqs.org/rfcs/rfc4515.html>}; the results won't be
+            filtered unless you define this.
+        @type filterstr: C{str}
+        @raise ValueError: If L{make_ldap_connection} could not create a
+            connection from C{ldap_connection}, or if C{attributes} is not an
+            iterable.
+        
+        """
+        if hasattr(attributes, 'split'):
+            attributes = attributes.split(',')
+        elif hasattr(attributes, '__iter__'):
+            # Converted to list, just in case...
+            attributes = list(attributes)
+        elif attributes is not None:
+            raise ValueError('The needed LDAP attributes are not valid')
+        self.ldap_connection = make_ldap_connection(ldap_connection)
+        self.attributes = attributes
+        self.filterstr = filterstr
+    
+    # IMetadataProvider
+    def add_metadata(self, environ, identity):
+        """
+        Add metadata about the authenticated user to the identity.
+        
+        It modifies the C{identity} dictionary to add the metadata.
+        
+        @param environ: The WSGI environment.
+        @param identity: The repoze.who's identity dictionary.
+        
+        """
+        # Search arguments:
+        args = (
+            identity.get('repoze.who.userid'),
+            ldap.SCOPE_BASE,
+            self.filterstr,
+            self.attributes
+        )
+        try:
+            for (attr_key, attr_value) in self.ldap_connection.search_s(*args):
+                identity[attr_key] = attr_value
+        except ldap.LDAPError, msg:
+            environ['repoze.who.logger'].warn('Cannot add metadata: %s' % \
+                                              msg)
+            return
 
 
 #{ Utilities
