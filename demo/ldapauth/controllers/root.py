@@ -18,4 +18,6 @@ class RootController(BaseController):
             raise HTTPUnauthorized()
         user = request.environ['repoze.who.identity']['repoze.who.userid']
         flash('Your Distinguished Name (DN) is "%s"' % user)
-        return dict()
+        # Passing the metadata
+        metadata = request.environ['repoze.who.identity']
+        return dict(metadata=metadata.items())
