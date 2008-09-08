@@ -178,8 +178,8 @@ class LDAPAttributesPlugin(object):
             self.attributes
         )
         try:
-            for (attr_key, attr_value) in self.ldap_connection.search_s(*args):
-                identity[attr_key] = attr_value
+            for (dn, attributes) in self.ldap_connection.search_s(*args):
+                identity.update(attributes)
         except ldap.LDAPError, msg:
             environ['repoze.who.logger'].warn('Cannot add metadata: %s' % \
                                               msg)
