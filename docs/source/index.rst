@@ -11,11 +11,20 @@ repoze.who.plugins.ldap - LDAP Authentication for WSGI Applications
     :synopsis: LDAP authentication middleware for WSGI
 
 `repoze.who.plugins.ldap <http://code.gustavonarea.net/repoze.who.plugins.ldap/>`_
-is a Python package that provides `repoze.who <http://static.repoze.org/whodocs/>`_
-plugins for `LDAP <http://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol>`_
-authentication in `WSGI <http://en.wikipedia.org/wiki/Web_Server_Gateway_Interface>`_
-applications. It can be used with any LDAP server and any WSGI framework (or no
-framework at all).
+is a Python package that provides `LDAP
+<http://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol>`_
+authentication, and related utilities, in `WSGI
+<http://en.wikipedia.org/wiki/Web_Server_Gateway_Interface>`_
+applications via `repoze.who <http://static.repoze.org/whodocs/>`_. It can be 
+used with any LDAP server and any WSGI framework (or no framework at all).
+
+It provides you with an straightforward solution to enable LDAP
+support in your applications. Yes, you read well: "straightforward", "LDAP" and
+"applications" are in the same sentence. In fact, you may make your application
+LDAP-aware in few minutes and with few lines of code.
+
+Another great news is that this package is *fully* documented and provides you
+with a working and documented demo project. 
 
 
 Get started!
