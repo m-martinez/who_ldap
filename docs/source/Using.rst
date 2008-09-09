@@ -190,6 +190,79 @@ you will find how to use them in your application.
     `identifier plugins` provided by the built-in `repoze.who.plugins.form`
     plugin are some of them).
 
+    It is a highly customizable plugin which can be adapted to your needs with
+    no hassle. You could also include in the login form a `select` field for
+    people to select the department they belong to, being the key of such
+    departments the `Organizational Unit` in the LDAP server; then, in the
+    **_get_dn** method you would get such value from the WSGI environment
+    object (**environ**).
+    
+    You may change the way the DN is created by subclassing
+    :class:`LDAPAuthenticatorPlugin` to override the *_get_dn* method. For
+    example, say in your company (with `dc=yourcompany,dc.com` as its DN)
+    everybody belongs to the `Organizational Unit` (OU) **employees**
+    (`ou=employees`), except the shareholders who belong to the OU
+    **shareholders** (`ou=shareholders`)::
+    
+        class YourCompanyLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
+            """Sample LDAP authenticator adapted to your company."""
+            
+            shareholders = ('lgarcia, 'mferreira', 'cnarea')
+            """Set of shareholders of the company"""
+            
+            def _get_dn(self, environ, identity):
+                try:
+                    if identity['login'] in self.shareholders:
+                        ou = 'shareholders'
+                    else:
+                        ou = 'employees'
+                    return u'uid=%s,ou=%s,%s' % (identity['login'], ou,
+                                                 self.base_dn)
+                except (KeyError, TypeError):
+                    raise ValueError, ('Could not find the DN from the identity '
+                                       'and environment')
+    
+    It is possibly an useless example on how to customize the way the DN is
+    found, but it's enough to show how to override it.
+        
+    To configure this plugin from an INI file, you'd have to include a section 
+    like this::
+    
+        [plugin:ldap_auth]
+        use = repoze.who.plugins.ldap:LDAPAuthenticatorPlugin
+        ldap_connection = ldap://yourcompany.com
+        base_dn = ou=employees,dc=yourcompany,dc=com
+    
+    If you're using a custom LDAP authenticator, as in the example above, you
+    would have to change the `use` directive accordingly — for example::
+    
+        use = yourpackage.lib.auth:YourCompanyLDAPAuthenticatorPlugin
+    
+    Finally, add the plugin to the set of authenticators::
+    
+        [authenticators]
+        plugins =
+                ldap_auth
+    
+    But if you're configuring `repoze.who` via Python code, you can use the code 
+    below::
+    
+        ldap_auth = LDAPAuthenticatorPlugin('ldap://ldap.yourcompany.com',
+                                            'ou=developers,dc=yourcompany,dc=com')
+    
+    But if you're using a custom LDAP authenticator, you would have to use the
+    code below instead::
+    
+        ldap_auth = YourCompanyLDAPAuthenticatorPlugin('ldap://ldap.yourcompany.com',
+                                                       'ou=employees,dc=yourcompany,dc=com')
+    
+    Finally, add this authenticator to the set of authenticators::
+    
+        authenticators = [('ldap_auth', ldap_auth)]
+    
+    As in the example above.
+
+
 .. class:: LDAPAttributesPlugin(ldap_connection[, attributes=None[, filterstr='(objectClass=*)']])
 
     This plugin enables you to load data for the authenticated user 
@@ -211,133 +284,38 @@ you will find how to use them in your application.
     Directory Access Protocol (LDAP): String Representation of Search Filters
     <http://www.faqs.org/rfcs/rfc4515.html>`_.
 
-
-The LDAP Authenticator
-~~~~~~~~~~~~~~~~~~~~~~
-
-It is a highly customizable plugin which can be adapted to your needs with
-no hassle. You could also include in the login form a `select` field for
-people to select the department they belong to, being the key of such
-departments the `Organizational Unit` in the LDAP server; then, in the
-**_get_dn** method you would get such value from the WSGI environment
-object (**environ**).
-
-You may change the way the DN is created by subclassing
-:class:`LDAPAuthenticatorPlugin` to override the *_get_dn* method. For
-example, say in your company (with `dc=yourcompany,dc.com` as its DN)
-everybody belongs to the `Organizational Unit` (OU) **employees**
-(`ou=employees`), except the shareholders who belong to the OU
-**shareholders** (`ou=shareholders`)::
-
-    class YourCompanyLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
-        """Sample LDAP authenticator adapted to your company."""
-        
-        shareholders = ('lgarcia, 'mferreira', 'cnarea')
-        """Set of shareholders of the company"""
-        
-        def _get_dn(self, environ, identity):
-            try:
-                if identity['login'] in self.shareholders:
-                    ou = 'shareholders'
-                else:
-                    ou = 'employees'
-                return u'uid=%s,ou=%s,%s' % (identity['login'], ou,
-                                             self.base_dn)
-            except (KeyError, TypeError):
-                raise ValueError, ('Could not find the DN from the identity '
-                                   'and environment')
-
-It is possibly an useless example on how to customize the way the DN is
-found, but it's enough to show how to override it.
-
-
-Configuring :class:`LDAPAuthenticatorPlugin` from an INI file
--------------------------------------------------------------
+    There is no advanced usage for this plugin, and hopefully you would never 
+    need to subclass it to suit your needs.
     
-To configure this plugin from an INI file, you'd have to include a section like
-this::
+    To configure this plugin from an INI file, you'd have to include a section 
+    like this::
+    
+        [plugin:ldap_attributes]
+        use = repoze.who.plugins.ldap:LDAPAttributesPlugin
+        ldap_connection = ldap://ldap.yourcompany.com
+        attributes = cn,sn,mail
+    
+    If instead of loading the *Common Name*, *surname* and *email*, as with the
+    settings above, you'd prefer to load all the available attributes for the
+    authenticated user, you'd just have to remove the *attributes* directive.
+    
+    Finally, add the plugin to the set of metadata providers::
+    
+        [mdproviders]
+        plugins =
+                ldap_attributes
+    
+    But if you want to configure it via Python code, you can use the code 
+    below::
+    
+        ldap_attributes = LDAPAttributesPlugin('ldap://ldap.yourcompany.com',
+                                               ['cn', 'sn', 'email'])
+    
+    Again, if you would prefer to load all the available attributes for the 
+    user, you just have to remove the second parameter.
+    
+    Finally, add this authenticator to the set of metadata providers in your 
+    Python code::
+    
+        mdproviders = [('ldap_attributes', ldap_attributes)]
 
-    [plugin:ldap_auth]
-    use = repoze.who.plugins.ldap:LDAPAuthenticatorPlugin
-    ldap_connection = ldap://yourcompany.com
-    base_dn = ou=employees,dc=yourcompany,dc=com
-
-If you're using a custom LDAP authenticator, as in the example above, you would
-have to change the `use` directive accordingly — for example::
-
-    use = yourpackage.lib.auth:YourCompanyLDAPAuthenticatorPlugin
-
-Finally, add the plugin to the set of authenticators::
-
-    [authenticators]
-    plugins =
-            ldap_auth
-
-
-Configuring :class:`LDAPAuthenticatorPlugin` from Python code
--------------------------------------------------------------
-
-If you're configuring `repoze.who` via Python code, you can use the code below::
-
-    ldap_auth = LDAPAuthenticatorPlugin('ldap://ldap.yourcompany.com',
-                                        'ou=developers,dc=yourcompany,dc=com')
-
-But if you're using a custom LDAP authenticator, you would have to use the
-code below instead::
-
-    ldap_auth = YourCompanyLDAPAuthenticatorPlugin('ldap://ldap.yourcompany.com',
-                                                   'ou=employees,dc=yourcompany,dc=com')
-
-Finally, add this authenticator to the set of authenticators::
-
-    authenticators = [('ldap_auth', ldap_auth)]
-
-As in the example above.
-
-
-The LDAP attribute loader
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-There is no advanced usage for this plugin, and hopefully you would never need
-to subclass it to suit your needs.
-
-Below you will learn how to use it.
-
-
-Configuring :class:`LDAPAttributesPlugin` from an INI file
--------------------------------------------------------------
-
-To configure this plugin from an INI file, you'd have to include a section like
-this::
-
-    [plugin:ldap_attributes]
-    use = repoze.who.plugins.ldap:LDAPAttributesPlugin
-    ldap_connection = ldap://ldap.yourcompany.com
-    attributes = cn,sn,mail
-
-If instead of loading the *Common Name*, *surname* and *email*, as with the
-settings above, you'd prefer to load all the available attributes for the
-authenticated user, you'd just have to remove the *attributes* directive.
-
-Finally, add the plugin to the set of metadata providers::
-
-    [mdproviders]
-    plugins =
-            ldap_attributes
-
-
-Configuring :class:`LDAPAttributesPlugin` from Python code
--------------------------------------------------------------
-
-If you want to configure it via Python code, you can use the code below::
-
-    ldap_attributes = LDAPAttributesPlugin('ldap://ldap.yourcompany.com',
-                                           ['cn', 'sn', 'email'])
-
-Again, if you would prefer to load all the available attributes for the user,
-you just have to remove the second parameter.
-
-Finally, add this authenticator to the set of metadata providers in your Python
-code::
-
-    mdproviders = [('ldap_attributes', ldap_attributes)]
