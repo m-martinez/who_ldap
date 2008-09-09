@@ -13,7 +13,7 @@ The quick install
 ==================
 
 If you've already installed `python-ldap` on your computer, the following
-command will install `repoze.who.plugins.ldap`:
+command will install `repoze.who.plugins.ldap`::
 
     easy_install repoze.who.plugins.ldap
 
@@ -40,7 +40,7 @@ Installing `python-ldap` on Ubuntu
 This may also work for Debian. If this procedure works in your Debian system,
 please let us know.
 
-First, install its dependencies:
+First, install its dependencies::
 
     sudo apt-get install build-essential libldap2-dev libsasl2-dev python-dev libssl-dev
 
@@ -82,10 +82,10 @@ Installing the mainline development branch
 
 The plugin is hosted in `a Bazaar branch hosted at Launchpad.net
 <https://code.launchpad.net/repoze.who.plugins.ldap>`_. To get the latest source
-code, run:
+code, run::
 
     bzr branch lp:repoze.who.plugins.ldap
 
-Then run the command below, from the project folder:
+Then run the command below, from the project folder::
 
     python setup.py develop
