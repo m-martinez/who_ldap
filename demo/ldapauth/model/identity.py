@@ -29,7 +29,7 @@ user_group_table = Table('tg_user_group', metadata,
         onupdate="CASCADE", ondelete="CASCADE"))
 )
 
-# identity model
+# auth model
 
 class Group(DeclarativeBase):
     """An ultra-simple group definition.
@@ -132,7 +132,7 @@ class User(DeclarativeBase):
 
         #elif "custom" == algorithm:
         #    custom_encryption_path = turbogears.config.get(
-        #        "identity.custom_encryption", None )
+        #        "auth.custom_encryption", None )
         #
         #    if custom_encryption_path:
         #        custom_encryption = turbogears.util.load_class(
@@ -151,10 +151,10 @@ class User(DeclarativeBase):
     def validate_password(self, password):
         """Check the password against existing credentials.
         """
-        identity = config.get('identity', None)
-        if identity is None:
+        auth = config.get('auth', None)
+        if auth is None:
             return password
-        algorithm = identity.get('password_encryption_method', None)
+        algorithm = auth.get('password_encryption_method', None)
         return self.password == self.__encrypt_password(algorithm, password)
 
 

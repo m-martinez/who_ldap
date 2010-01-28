@@ -1,6 +1,12 @@
 repoze.who.plugins.ldap Changelog
 =================================
 
+2010-01-28
+----------
+
+Changed the license to the `Repoze license <http://repoze.org/license.html>`_.
+
+
 1.0 (2008-09-09)
 -------------------------------
 The initial release.

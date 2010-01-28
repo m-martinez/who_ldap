@@ -14,10 +14,10 @@ class RootController(BaseController):
 
     @expose('ldapauth.templates.about')
     def about(self):
-        if request.environ.get('repoze.who.identity') == None:
+        if request.environ.get('repoze.who.auth') == None:
             raise HTTPUnauthorized()
-        user = request.environ['repoze.who.identity']['repoze.who.userid']
+        user = request.environ['repoze.who.auth']['repoze.who.userid']
         flash('Your Distinguished Name (DN) is "%s"' % user)
         # Passing the metadata
-        metadata = request.environ['repoze.who.identity']
+        metadata = request.environ['repoze.who.auth']
         return dict(metadata=metadata.items())

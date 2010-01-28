@@ -6,18 +6,12 @@
 # This file is part of repoze.who.plugins.ldap
 # <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
 #
-# repoze.who.plugins.ldap is freedomware: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or any later
-# version.
-#
-# repoze.who.plugins.ldap is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-# Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# repoze.who.plugins.ldap. If not, see <http://www.gnu.org/licenses/>.
+# This software is subject to the provisions of the BSD-like license at
+# http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
+# this distribution.  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL
+# EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
+# FITNESS FOR A PARTICULAR PURPOSE.
 
 """LDAP plugins for repoze.who."""
 
@@ -46,7 +40,7 @@ class LDAPAuthenticatorPlugin(object):
         to override L{_get_dn}.
         
         This plugin is compatible with any identifier plugin that defines the
-        C{login} and C{password} items in the I{identity} dictionary.
+        C{login} and C{password} items in the I{auth} dictionary.
         
         @param ldap_connection: An initialized LDAP connection.
         @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject}
@@ -63,7 +57,7 @@ class LDAPAuthenticatorPlugin(object):
         self.base_dn = base_dn
 
     # IAuthenticatorPlugin
-    def authenticate(self, environ, identity):
+    def authenticate(self, environ, auth):
         """Return the Distinguished Name of the user to be authenticated.
         
         @attention: The uid is not returned because it may not be unique; the
@@ -74,8 +68,8 @@ class LDAPAuthenticatorPlugin(object):
         """
         
         try:
-            dn = self._get_dn(environ, identity)
-            password = identity['password']
+            dn = self._get_dn(environ, auth)
+            password = auth['password']
         except (KeyError, TypeError, ValueError):
             return None
 
@@ -91,13 +85,13 @@ class LDAPAuthenticatorPlugin(object):
         except ldap.LDAPError:
             return None
     
-    def _get_dn(self, environ, identity):
+    def _get_dn(self, environ, auth):
         """
-        Return the DN based on the environment and the identity.
+        Return the DN based on the environment and the auth.
         
         It prepends the user id to the base DN given in the constructor:
         
-        If the C{login} item of the identity is C{rms} and the base DN is
+        If the C{login} item of the auth is C{rms} and the base DN is
         C{ou=developers,dc=gnu,dc=org}, the resulting DN will be:
         C{uid=rms,ou=developers,dc=gnu,dc=org}.
         
@@ -105,14 +99,14 @@ class LDAPAuthenticatorPlugin(object):
             default doesn't meet your requirements. If you do so, make sure to
             raise a C{ValueError} exception if the operation is not successful.
         @param environ: The WSGI environment.
-        @param identity: The identity dictionary.
+        @param auth: The auth dictionary.
         @return: The Distinguished Name (DN)
         @rtype: C{unicode}
-        @raise ValueError: If the C{login} key is not in the I{identity} dict.
+        @raise ValueError: If the C{login} key is not in the I{auth} dict.
         
         """
         try:
-            return u'uid=%s,%s' % (identity['login'], self.base_dn)
+            return u'uid=%s,%s' % (auth['login'], self.base_dn)
         except (KeyError, TypeError):
             raise ValueError
 
@@ -160,26 +154,26 @@ class LDAPAttributesPlugin(object):
         self.filterstr = filterstr
     
     # IMetadataProvider
-    def add_metadata(self, environ, identity):
+    def add_metadata(self, environ, auth):
         """
-        Add metadata about the authenticated user to the identity.
+        Add metadata about the authenticated user to the auth.
         
-        It modifies the C{identity} dictionary to add the metadata.
+        It modifies the C{auth} dictionary to add the metadata.
         
         @param environ: The WSGI environment.
-        @param identity: The repoze.who's identity dictionary.
+        @param auth: The repoze.who's auth dictionary.
         
         """
         # Search arguments:
         args = (
-            identity.get('repoze.who.userid'),
+            auth.get('repoze.who.userid'),
             ldap.SCOPE_BASE,
             self.filterstr,
             self.attributes
         )
         try:
             for (dn, attributes) in self.ldap_connection.search_s(*args):
-                identity.update(attributes)
+                auth.update(attributes)
         except ldap.LDAPError, msg:
             environ['repoze.who.logger'].warn('Cannot add metadata: %s' % \
                                               msg)

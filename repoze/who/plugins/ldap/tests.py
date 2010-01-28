@@ -104,38 +104,38 @@ class TestLDAPAuthenticatorPlugin(Base):
         self.assertEqual(result, None)
 
     def test_authenticate_incomplete_credentials(self):
-        identity1 = {'login': fakeuser['uid']}
-        identity2 = {'password': fakeuser['password']}
-        result1 = self.plugin.authenticate(self.env, identity1)
-        result2 = self.plugin.authenticate(self.env, identity2)
+        auth1 = {'login': fakeuser['uid']}
+        auth2 = {'password': fakeuser['password']}
+        result1 = self.plugin.authenticate(self.env, auth1)
+        result2 = self.plugin.authenticate(self.env, auth2)
         self.assertEqual(result1, None)
         self.assertEqual(result2, None)
 
     def test_authenticate_noresults(self):
-        identity = {'login': 'i_dont_exist',
+        auth = {'login': 'i_dont_exist',
                     'password': 'super secure password'}
-        result = self.plugin.authenticate(self.env, identity)
+        result = self.plugin.authenticate(self.env, auth)
         self.assertEqual(result, None)
 
     def test_authenticate_comparefail(self):
-        identity = {'login': fakeuser['uid'],
+        auth = {'login': fakeuser['uid'],
                     'password': 'wrong password'}
-        result = self.plugin.authenticate(self.env, identity)
+        result = self.plugin.authenticate(self.env, auth)
         self.assertEqual(result, None)
 
     def test_authenticate_comparesuccess(self):
-        identity = {'login': fakeuser['uid'],
+        auth = {'login': fakeuser['uid'],
                     'password': fakeuser['password']}
-        result = self.plugin.authenticate(self.env, identity)
+        result = self.plugin.authenticate(self.env, auth)
         self.assertEqual(result, fakeuser['dn'])
     
     def test_custom_authenticator(self):
         """L{LDAPAuthenticatorPlugin._get_dn} should be overriden with no
         problems"""
         plugin = CustomLDAPAuthenticatorPlugin(self.connection, base_dn)
-        identity = {'login': fakeuser['uid'],
+        auth = {'login': fakeuser['uid'],
                     'password': fakeuser['password']}
-        result = plugin.authenticate(self.env, identity)
+        result = plugin.authenticate(self.env, auth)
         expected = 'uid=%s,ou=admins,%s' % (fakeuser['uid'], base_dn)
         self.assertEqual(result, expected)
 
@@ -192,15 +192,15 @@ class TestLDAPAttributesPlugin(Base):
     def test_add_metadata(self):
         plugin = LDAPAttributesPlugin(self.connection)
         environ = {}
-        identity = {'repoze.who.userid': fakeuser['dn']}
-        expected_identity = {
+        auth = {'repoze.who.userid': fakeuser['dn']}
+        expected_auth = {
             'repoze.who.userid': fakeuser['dn'],
             'cn': [fakeuser['cn']],
             'userPassword': [fakeuser['hashedPassword']],
             'uid': fakeuser['uid']
         }
-        plugin.add_metadata(environ, identity)
-        self.assertEqual(identity, expected_identity)
+        plugin.add_metadata(environ, auth)
+        self.assertEqual(auth, expected_auth)
 
 
 # Test cases for plugin utilities
@@ -241,11 +241,11 @@ fakeuser = {
 class CustomLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
     """Fake class to test that L{LDAPAuthenticatorPlugin._get_dn} can be
     overriden with no problems"""
-    def _get_dn(self, environ, identity):
+    def _get_dn(self, environ, auth):
         try:
-            return u'uid=%s,ou=admins,%s' % (identity['login'], self.base_dn)
+            return u'uid=%s,ou=admins,%s' % (auth['login'], self.base_dn)
         except (KeyError, TypeError):
-            raise ValueError, ('Could not find the DN from the identity and '
+            raise ValueError, ('Could not find the DN from the auth and '
                                'environment')
 
 
