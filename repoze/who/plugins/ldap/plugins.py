@@ -154,30 +154,28 @@ class LDAPAttributesPlugin(object):
         self.filterstr = filterstr
     
     # IMetadataProvider
-    def add_metadata(self, environ, auth):
+    def add_metadata(self, environ, identity):
         """
         Add metadata about the authenticated user to the auth.
         
-        It modifies the C{auth} dictionary to add the metadata.
+        It modifies the C{identity} dictionary to add the metadata.
         
         @param environ: The WSGI environment.
-        @param auth: The repoze.who's auth dictionary.
+        @param identity: The repoze.who's identity dictionary.
         
         """
         # Search arguments:
         args = (
-            auth.get('repoze.who.userid'),
+            identity.get('repoze.who.userid'),
             ldap.SCOPE_BASE,
             self.filterstr,
             self.attributes
         )
         try:
-            for (dn, attributes) in self.ldap_connection.search_s(*args):
-                auth.update(attributes)
+            attributes = self.ldap_connection.search_s(*args)
+            identity.update(attributes)
         except ldap.LDAPError, msg:
-            environ['repoze.who.logger'].warn('Cannot add metadata: %s' % \
-                                              msg)
-            return
+            environ['repoze.who.logger'].warn('Cannot add metadata: %s' % msg)
 
 
 #{ Utilities
