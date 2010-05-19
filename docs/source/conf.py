@@ -39,7 +39,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'repoze.who.plugins.ldap'
-copyright = '2008, Gustavo Narea'
+copyright = '2008-2010, Gustavo Narea'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.

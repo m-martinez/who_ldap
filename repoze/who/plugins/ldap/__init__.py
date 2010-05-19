@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
-# Copyright (C) 2008 by Gustavo Narea <http://gustavonarea.net/>
+# Copyright (C) 2008-2010 by Gustavo Narea <http://gustavonarea.net/>
 #
 # This file is part of repoze.who.plugins.ldap
 # <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
