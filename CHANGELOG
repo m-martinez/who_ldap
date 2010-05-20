@@ -2,7 +2,8 @@ repoze.who.plugins.ldap Changelog
 =================================
 
 Future (20yy-mm-dd)
--------------------------------
+-------------------
+
 
  - provide start_tls option both for the authenticator and the metadata provider
  - enable both pattern-replacement and subtree searches for the naming
@@ -13,6 +14,12 @@ Future (20yy-mm-dd)
  - add a restrict pattern to pre-authentication DN searches
  - let the user choose whether to return the full DN or the supplied login as
    the user identifier
+
+
+2010-01-28
+----------------
+
+Changed the license to the `Repoze license <http://repoze.org/license.html>`_.
 
 
 1.0 (2008-09-11)

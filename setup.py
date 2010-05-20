@@ -1,23 +1,17 @@
 # -*- coding: utf-8 -*-
 #
 # repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
-# Copyright (C) 2008 by Gustavo Narea <http://gustavonarea.net/>
+# Copyright (C) 2008-2010 by Gustavo Narea <http://gustavonarea.net/>
 #
 # This file is part of repoze.who.plugins.ldap
 # <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
 #
-# repoze.who.plugins.ldap is freedomware: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or any later
-# version.
-#
-# repoze.who.plugins.ldap is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-# Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# repoze.who.plugins.ldap. If not, see <http://www.gnu.org/licenses/>.
+# This software is subject to the provisions of the BSD-like license at
+# http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
+# this distribution.  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL
+# EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
+# FITNESS FOR A PARTICULAR PURPOSE.
 
 import os
 
@@ -36,7 +30,6 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
@@ -48,14 +41,14 @@ setup(
     author_email="me@gustavonarea.net",
     url="http://code.gustavonarea.net/repoze.who.plugins.ldap/",
     download_url="https://launchpad.net/repoze.who.plugins.ldap/+download",
-    license="GNU General Public License v3",
+    license="BSD-derived (http://www.repoze.org/LICENSE.txt)",
     include_package_data=True,
     packages=find_packages(exclude=["*.tests", "demo", "demo.*"]),
     namespace_packages=['repoze', 'repoze.who', 'repoze.who.plugins'],
     zip_safe=False,
-    tests_require = ['dataflake.ldapconnection>=0.3, != 1.1'],
+    tests_require = ['dataflake.ldapconnection==0.3'],
     install_requires=[
-        'repoze.who>=1.0.6',
+        'repoze.who >= 1.0.6, < 2.0dev',
         'python-ldap>=2.3.5',
         'setuptools',
         'zope.interface'
