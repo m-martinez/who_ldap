@@ -1,6 +1,20 @@
 repoze.who.plugins.ldap Changelog
 =================================
 
+Future (20yy-mm-dd)
+-------------------------------
+
+ - provide start_tls option both for the authenticator and the metadata provider
+ - let the user choose whether to return the full DN or the supplied login as
+   the user identifier
+ - enable configuration of the naming attribute
+ - enable the option to bind to the server with privileged credential before
+   doing searches
+ - create a new LDAPSearchAuthenticatorPlugin to let the API client get the
+   DN from a directory search instead than by pattern-replace. This plugin
+   adds the option to set a restrict assertion to the ldap search pattern.
+
+
 1.0 (2008-09-11)
 -------------------------------
 The initial release.

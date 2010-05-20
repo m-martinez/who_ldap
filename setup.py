@@ -53,7 +53,7 @@ setup(
     packages=find_packages(exclude=["*.tests", "demo", "demo.*"]),
     namespace_packages=['repoze', 'repoze.who', 'repoze.who.plugins'],
     zip_safe=False,
-    tests_require = ['dataflake.ldapconnection>=0.3'],
+    tests_require = ['dataflake.ldapconnection>=0.3, != 1.1'],
     install_requires=[
         'repoze.who>=1.0.6',
         'python-ldap>=2.3.5',
