@@ -60,9 +60,12 @@ class LDAPBaseAuthenticatorPlugin(object):
             C{ou=employees,dc=example,dc=org}, to which will be prepended the
             user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
         @type base_dn: C{unicode}
-        @param returned_id: Should we return full Directory Names or just the
-            naming attribute value on successfull authentication
+        @param returned_id: Should we return the full DN or just the
+            bare naming identifier value on successful authentication?
         @type returned_id: C{str}, 'dn' or 'login'
+        @attention: While the DN is always unique, if you configure the
+            authenticator plugin to return the bare naming attribute,
+            you have to ensure its uniqueness in the DIT.
         @param start_tls: Should we negotiate a TLS upgrade on the connection with
             the directory server?
         @type start_tls: C{bool}
@@ -97,7 +100,7 @@ class LDAPBaseAuthenticatorPlugin(object):
 
     def _get_dn(self, environ, identity):
         """
-        Return the DN based on the environment and the identity.
+        Return the user DN based on the environment and the identity.
 
         Must be implemented in a subclass
         
@@ -113,11 +116,9 @@ class LDAPBaseAuthenticatorPlugin(object):
 
     # IAuthenticatorPlugin
     def authenticate(self, environ, identity):
-        """Return the Distinguished Name of the user to be authenticated.
+        """Return the naming identifier of the user to be authenticated.
         
-        @attention: The uid is not returned because it may not be unique; the
-            DN, on the contrary, is always unique.
-        @return: The Distinguished Name (DN), if the credentials were valid.
+        @return: The naming identifier, if the credentials were valid.
         @rtype: C{unicode} or C{None}
         
         """
@@ -182,7 +183,7 @@ class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
             C{ou=employees,dc=example,dc=org}, to which will be prepended the
             user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
         @param returned_id: Should we return full Directory Names or just the
-            naming attribute value on successfull authentication
+            bare naming identifier on successful authentication?
         @param start_tls: Should we negotiate a TLS upgrade on the connection with
             the directory server?
         @param bind_dn: Operate as the bind_dn directory entry
@@ -195,14 +196,11 @@ class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 
     def _get_dn(self, environ, identity):
         """
-        Return the DN based on the environment and the identity.
-        
-        It prepends the user id to the base DN given in the constructor:
+        Return the user naming identifier based on the environment and the identity.
         
         If the C{login} item of the identity is C{rms} and the base DN is
         C{ou=developers,dc=gnu,dc=org}, the resulting DN will be:
-        C{uid=rms,ou=developers,dc=gnu,dc=org}.
-
+        C{uid=rms,ou=developers,dc=gnu,dc=org}
         @param environ: The WSGI environment.
         @param identity: The identity dictionary.
         @return: The Distinguished Name (DN)
@@ -257,10 +255,23 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         @param restrict: An ldap filter which will be ANDed to the search filter
             while searching for entries matching the naming attribute
         @type restrict: C{unicode}
+        @attention: restrict will be interpolated into the search string as a
+            bare string like in "(&%s(identifier=login))". It must be correctly
+            parenthesised for such usage as in restrict = "(objectClass=*)". 
 
         @raise ValueError: If at least one of the parameters is not defined.
 
+        The following parameters are inherited from 
         L{LDAPBaseAuthenticatorPlugin.__init__}
+        @param base_dn: The base for the I{Distinguished Name}. Something like
+            C{ou=employees,dc=example,dc=org}, to which will be prepended the
+            user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
+        @param returned_id: Should we return full Directory Names or just the
+            bare naming identifier on successful authentication?
+        @param start_tls: Should we negotiate a TLS upgrade on the connection with
+            the directory server?
+        @param bind_dn: Operate as the bind_dn directory entry
+        @param bind_pass: The password for bind_dn directory entry
         
         """
         LDAPBaseAuthenticatorPlugin.__init__(self, ldap_connection, base_dn,**kwargs)
@@ -360,7 +371,7 @@ class LDAPAttributesPlugin(object):
             C{ou=employees,dc=example,dc=org}, to which will be prepended the
             user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
         @param returned_id: Should we return full Directory Names or just the
-            naming attribute value on successfull authentication
+            naming attribute value on successful authentication?
         @param start_tls: Should we negotiate a TLS upgrade on the connection with
             the directory server?
         @param bind_dn: Operate as the bind_dn directory entry
