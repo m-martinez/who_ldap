@@ -90,7 +90,7 @@ class LDAPBaseAuthenticatorPlugin(object):
         elif returned_id.lower() == 'login':
             self.ret_style = 'l'
         else:
-            raise ValueError("The return style should be 'dn' or 'userid'")
+            raise ValueError("The return style should be 'dn' or 'login'")
 
     def _get_dn(self, environ, identity):
         """
