@@ -12,10 +12,10 @@
 # EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
 # THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
 # FITNESS FOR A PARTICULAR PURPOSE.
-
 """LDAP plugins for repoze.who."""
 
-__all__ = ['LDAPAuthenticatorPlugin', 'LDAPSearchAuthenticatorPlugin','LDAPAttributesPlugin']
+__all__ = ['LDAPAuthenticatorPlugin', 'LDAPSearchAuthenticatorPlugin',
+           'LDAPAttributesPlugin']
 
 from zope.interface import implements
 import ldap
@@ -34,8 +34,8 @@ class LDAPBaseAuthenticatorPlugin(object):
 
     implements(IAuthenticator)
 
-    def __init__(self, ldap_connection, base_dn, returned_id = 'dn',
-                      start_tls = False, bind_dn = '', bind_pass ='',**kwargs):
+    def __init__(self, ldap_connection, base_dn, returned_id='dn',
+                 start_tls=False, bind_dn='', bind_pass='', **kwargs):
         """Create an LDAP authentication plugin.
         
         By passing an existing LDAPObject, you're free to use the LDAP
@@ -80,7 +80,7 @@ class LDAPBaseAuthenticatorPlugin(object):
             except:
                 raise ValueError('Cannot upgrade the connection')
 
-        self.bind_dn   = bind_dn
+        self.bind_dn = bind_dn
         self.bind_pass = bind_pass
 
         self.base_dn = base_dn
@@ -130,7 +130,7 @@ class LDAPBaseAuthenticatorPlugin(object):
         
         try:
             self.ldap_connection.simple_bind_s(dn, password)
-            userdata = identity.get('userdata','')
+            userdata = identity.get('userdata', '')
             # The credentials are valid!
             if self.ret_style == 'd':
                 return dn
@@ -146,11 +146,8 @@ class LDAPBaseAuthenticatorPlugin(object):
 
 class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 
-    def __init__(self, ldap_connection, base_dn, naming_attribute='uid', **kwargs):
-
-            # def __init__(self, ldap_connection, base_dn, returned_id = 'dn',
-            #                   start_tls = '', bind_dn = '', bind_pass ='',**kwargs):
-
+    def __init__(self, ldap_connection, base_dn, naming_attribute='uid',
+                 **kwargs):
         """Create an LDAP authentication plugin using pattern-determined DNs
         
         By passing an existing LDAPObject, you're free to use the LDAP
@@ -185,12 +182,14 @@ class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         
 
         """
-        LDAPBaseAuthenticatorPlugin.__init__(self, ldap_connection, base_dn, **kwargs)
+        LDAPBaseAuthenticatorPlugin.__init__(self, ldap_connection, base_dn,
+                                             **kwargs)
         self.naming_pattern = u'%s=%%s,%%s' % naming_attribute
 
     def _get_dn(self, environ, identity):
         """
-        Return the user naming identifier based on the environment and the identity.
+        Return the user naming identifier based on the environment and the
+        identity.
         
         If the C{login} item of the identity is C{rms} and the base DN is
         C{ou=developers,dc=gnu,dc=org}, the resulting DN will be:
@@ -218,12 +217,7 @@ class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 
     def __init__(self, ldap_connection, base_dn, naming_attribute='uid',
-                       search_scope = 'subtree', restrict = '', **kwargs):
-
-            # def __init__(self, ldap_connection, base_dn, returned_id = 'dn',
-            #                   start_tls = '', bind_dn = '', bind_pass ='',**kwargs):
-
-
+                 search_scope='subtree', restrict='', **kwargs):
         """Create an LDAP authentication plugin determining the DN via LDAP searches.
         
         By passing an existing LDAPObject, you're free to use the LDAP
@@ -263,13 +257,14 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
             user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
         @param returned_id: Should we return full Directory Names or just the
             bare naming identifier on successful authentication?
-        @param start_tls: Should we negotiate a TLS upgrade on the connection with
-            the directory server?
+        @param start_tls: Should we negotiate a TLS upgrade on the connection
+            with the directory server?
         @param bind_dn: Operate as the bind_dn directory entry
         @param bind_pass: The password for bind_dn directory entry
         
         """
-        LDAPBaseAuthenticatorPlugin.__init__(self, ldap_connection, base_dn,**kwargs)
+        LDAPBaseAuthenticatorPlugin.__init__(self, ldap_connection, base_dn,
+                                             **kwargs)
 
         if search_scope[:3].lower() == 'sub':
             self.search_scope = ldap.SCOPE_SUBTREE
@@ -311,15 +306,19 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         try:
             login_name = identity['login'].replace('*',r'\*')
             srch = self.search_pattern % login_name
-            dn_list = self.ldap_connection.search_s(self.base_dn, self.search_scope, 
-                                          srch)
+            dn_list = self.ldap_connection.search_s(
+                self.base_dn,
+                self.search_scope,
+                srch,
+                )
+            
             if len(dn_list) == 1:
                 return dn_list[0][0]
             elif len(dn_list) > 1:
                 raise ValueError('Too many entries found for %s' % srch)
             else:
                 raise ValueError('No entry found for %s' %srch)
-        except (KeyError, TypeError,ldap.LDAPError):
+        except (KeyError, TypeError, ldap.LDAPError):
             raise # ValueError
 
 
@@ -422,10 +421,11 @@ class LDAPAttributesPlugin(object):
                 raise ValueError("Couldn't bind with supplied credentials")
         try:
             attributes = self.ldap_connection.search_s(*args)
-            identity.update(attributes)
         except ldap.LDAPError, msg:
             environ['repoze.who.logger'].warn('Cannot add metadata: %s' % msg)
             raise Exception(identity)
+        else:
+            identity.update(attributes[0][1])
 
 
 #{ Utilities

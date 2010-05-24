@@ -1,24 +1,17 @@
 # -*- coding: utf-8 -*-
 #
 # repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
-# Copyright (C) 2008 by Gustavo Narea <http://gustavonarea.net/>
+# Copyright (C) 2008-2010 by Gustavo Narea <http://gustavonarea.net/>
 #
 # This file is part of repoze.who.plugins.ldap
 # <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
 #
-# repoze.who.plugins.ldap is freedomware: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or any later
-# version.
-#
-# repoze.who.plugins.ldap is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-# Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# repoze.who.plugins.ldap. If not, see <http://www.gnu.org/licenses/>.
-
+# This software is subject to the provisions of the BSD-like license at
+# http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
+# this distribution.  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL
+# EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
+# FITNESS FOR A PARTICULAR PURPOSE.
 """Test suite for repoze.who.plugins.ldap"""
 
 import unittest
@@ -83,13 +76,14 @@ class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
     def test_without_connection(self):
         self.assertRaises(ValueError, LDAPAuthenticatorPlugin, None,
                           'dc=example,dc=org')
+    
     def test_without_base_dn(self):
-        conn = fakeldap.initialize('ldap://example.org')
+        conn = fakeldap.FakeLDAPConnection()
         self.assertRaises(TypeError, LDAPAuthenticatorPlugin, conn)
         self.assertRaises(ValueError, LDAPAuthenticatorPlugin, conn, None)
     
     def test_with_connection(self):
-        conn = fakeldap.initialize('ldap://example.org')
+        conn = fakeldap.FakeLDAPConnection()
         LDAPAuthenticatorPlugin(conn, 'dc=example,dc=org')
     
     def test_connection_is_url(self):
@@ -144,8 +138,9 @@ class TestLDAPAuthenticatorPlugin(Base):
         identity = {'login': fakeuser['uid'],
                     'password': fakeuser['password']}
         result = plugin.authenticate(self.env, identity)
-        expected = 'uid=%s,ou=admins,%s' % (fakeuser['uid'], base_dn)
+        expected = 'uid=%s,%s' % (fakeuser['uid'], base_dn)
         self.assertEqual(result, expected)
+        self.assertTrue(plugin.called)
 
 class TestLDAPSearchAuthenticatorPluginNaming(Base):
     """Tests for the L{LDAPSearchAuthenticatorPlugin} IAuthenticator plugin"""
@@ -153,7 +148,11 @@ class TestLDAPSearchAuthenticatorPluginNaming(Base):
     def setUp(self):
         super(TestLDAPSearchAuthenticatorPluginNaming, self).setUp()
         # Loading the plugin:
-        self.plugin = LDAPSearchAuthenticatorPlugin(self.connection, base_dn,naming_attribute='telephone')
+        self.plugin = LDAPSearchAuthenticatorPlugin(
+            self.connection,
+            base_dn,
+            naming_attribute='telephone',
+            )
 
     def test_authenticate_noresults(self):
         identity = {'login': 'i_dont_exist',
@@ -174,12 +173,20 @@ class TestLDAPSearchAuthenticatorPluginNaming(Base):
         self.assertEqual(result, fakeuser['dn'])
     
 class TestLDAPAuthenticatorReturnLogin(Base):
-    """Tests the L{LDAPAuthenticatorPlugin} IAuthenticator plugin returning login"""
+    """
+    Tests the L{LDAPAuthenticatorPlugin} IAuthenticator plugin returning
+    login.
+    
+    """
     
     def setUp(self):
         super(TestLDAPAuthenticatorReturnLogin, self).setUp()
         # Loading the plugin:
-        self.plugin = LDAPAuthenticatorPlugin(self.connection, base_dn, returned_id = 'login')
+        self.plugin = LDAPAuthenticatorPlugin(
+            self.connection,
+            base_dn,
+            returned_id='login',
+            )
 
     def test_authenticate_noresults(self):
         identity = {'login': 'i_dont_exist',
@@ -208,12 +215,20 @@ class TestLDAPAuthenticatorReturnLogin(Base):
         
     
 class TestLDAPSearchAuthenticatorReturnLogin(Base):
-    """Tests the L{LDAPSearchAuthenticatorPlugin} IAuthenticator plugin returning login"""
+    """
+    Tests the L{LDAPSearchAuthenticatorPlugin} IAuthenticator plugin returning
+    login.
+    
+    """
     
     def setUp(self):
         super(TestLDAPSearchAuthenticatorReturnLogin, self).setUp()
         # Loading the plugin:
-        self.plugin = LDAPSearchAuthenticatorPlugin(self.connection, base_dn, returned_id = 'login')
+        self.plugin = LDAPSearchAuthenticatorPlugin(
+            self.connection,
+            base_dn,
+            returned_id='login',
+            )
 
     def test_authenticate_noresults(self):
         identity = {'login': 'i_dont_exist',
@@ -247,7 +262,8 @@ class TestLDAPAuthenticatorPluginStartTls(Base):
     def setUp(self):
         super(TestLDAPAuthenticatorPluginStartTls, self).setUp()
         # Loading the plugin:
-        self.plugin = LDAPAuthenticatorPlugin(self.connection, base_dn, start_tls=True)
+        self.plugin = LDAPAuthenticatorPlugin(self.connection, base_dn,
+                                              start_tls=True)
 
     def test_implements(self):
         verifyClass(IAuthenticator, LDAPAuthenticatorPlugin, tentative=True)
@@ -324,7 +340,7 @@ class TestLDAPConnectionFactory(unittest.TestCase):
     """Tests for L{make_ldap_connection}"""
     
     def test_connection_is_object(self):
-        conn = fakeldap.initialize('ldap://example.org')
+        conn = fakeldap.FakeLDAPConnection()
         self.assertEqual(make_ldap_connection(conn), conn)
     
     def test_connection_is_str(self):
@@ -363,27 +379,47 @@ class TestLDAPConnection(unittest.TestCase):
         self.connection.delete_s(fakeuser['dn'])
 
     def test_simple_search_result(self):
-        rs = self.connection.search_s(base_dn,ldap.SCOPE_SUBTREE,'(uid=%s)' % fakeuser['uid'])
+        rs = self.connection.search_s(
+            base_dn,
+            ldap.SCOPE_SUBTREE,
+            '(uid=%s)' % fakeuser['uid'],
+            )
         self.assertEqual(rs[0][0], fakeuser['dn'])
         self.assertEqual(rs[0][1], self.person_attr )
 
     def unimplemented_test_and_search_result(self):
-        rs = self.connection.search_s(base_dn,ldap.SCOPE_SUBTREE,'(&(objectclass=*)(uid=%s))' % fakeuser['uid'])
+        rs = self.connection.search_s(
+            base_dn,
+            ldap.SCOPE_SUBTREE,
+            '(&(objectclass=*)(uid=%s))' % fakeuser['uid'],
+            )
         self.assertEqual(rs[0][0], fakeuser['dn'])
         self.assertEqual(rs[0][1], self.person_attr )
 
     def unimplemented_test_bare_search_result(self):
-        rs = self.connection.search_s(base_dn,ldap.SCOPE_SUBTREE,'uid=%s' % fakeuser['uid'])
+        rs = self.connection.search_s(
+            base_dn,
+            ldap.SCOPE_SUBTREE,
+            'uid=%s' % fakeuser['uid'],
+            )
         self.assertEqual(rs[0][0], fakeuser['dn'])
         self.assertEqual(rs[0][1], self.person_attr )
 
     def error_test_email_address_search(self):
-        rs = self.connection.search_s(base_dn,ldap.SCOPE_SUBTREE,'(mail=%s)' % fakeuser['mail'])
+        rs = self.connection.search_s(
+            base_dn,
+            ldap.SCOPE_SUBTREE,
+            '(mail=%s)' % fakeuser['mail'],
+            )
         self.assertEqual(rs[0][0], fakeuser['dn'])
         self.assertEqual(rs[0][1], self.person_attr )
 
     def error_test_plus_in_search(self):
-        rs = self.connection.search_s(base_dn,ldap.SCOPE_SUBTREE,'(telephone=+%s)' % fakeuser['telephone'] )
+        rs = self.connection.search_s(
+            base_dn,
+            ldap.SCOPE_SUBTREE,
+            '(telephone=+%s)' % fakeuser['telephone'],
+            )
         self.assertEqual(rs[0][0], fakeuser['dn'])
         self.assertEqual(rs[0][1], self.person_attr )
 
@@ -401,12 +437,15 @@ fakeuser = {
     'hashedPassword': '{SHA}qvTGHdzF6KLavt4PO0gs2a6pQ00='
 }
 
+
 class CustomLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
     """Fake class to test that L{LDAPAuthenticatorPlugin._get_dn} can be
     overriden with no problems"""
+    
     def _get_dn(self, environ, identity):
+        self.called = True
         try:
-            return u'uid=%s,ou=admins,%s' % (identity['login'], self.base_dn)
+            return u'uid=%s,%s' % (identity['login'], self.base_dn)
         except (KeyError, TypeError):
             raise ValueError, ('Could not find the DN from the identity and '
                                'environment')
@@ -430,11 +469,13 @@ def suite():
     suite.addTest(unittest.makeSuite(TestMakeLDAPAttributesPlugin, "test"))
     suite.addTest(unittest.makeSuite(TestLDAPAttributesPlugin, "test"))
     suite.addTest(unittest.makeSuite(TestLDAPConnectionFactory, "test"))
-    suite.addTest(unittest.makeSuite(TestLDAPSearchAuthenticatorPluginNaming, "test"))
+    suite.addTest(unittest.makeSuite(TestLDAPSearchAuthenticatorPluginNaming,
+                                     "test"))
     suite.addTest(unittest.makeSuite(TestLDAPAuthenticatorReturnLogin, "test"))
-    suite.addTest(unittest.makeSuite(TestLDAPSearchAuthenticatorReturnLogin, "test"))
-    # suite.addTest(unittest.makeSuite(TestLDAPAuthenticatorPluginStartTls, "test"))
-    # fakeldap < 1.1 doesn't implement start_tls_s
+    suite.addTest(unittest.makeSuite(TestLDAPSearchAuthenticatorReturnLogin,
+                                     "test"))
+    suite.addTest(unittest.makeSuite(TestLDAPAuthenticatorPluginStartTls,
+                                     "test"))
     return suite
 
 
