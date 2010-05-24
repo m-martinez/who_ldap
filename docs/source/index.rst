@@ -86,14 +86,16 @@ Thanks!
 
 This plugin was made possible thanks to the people below:
 
- - **Chris McDonough**, for his guidance throughout the development of the
-   plugin.
+ - **Lorenzo M. Catucci**, of the `University of Rome "Tor Vergata"
+   <http://www.uniroma2.it/>`_, for implementing all of the new features in v1.1.
+ - **Chris McDonough**, for his guidance throughout the initial development of
+   the plugin.
 
 
 Copyright notice for this documentation
 =======================================
 
-Copyright (c) 2008, by Gustavo Narea.
+Copyright (c) 2008-2010, by Gustavo Narea.
 
 Permission is granted to copy, distribute and/or modify this document under the
 terms of the `GNU Free Documentation License <http://www.gnu.org/copyleft/fdl.html>`_,
