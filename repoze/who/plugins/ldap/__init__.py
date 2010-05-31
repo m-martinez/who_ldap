@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 # repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
-# Copyright (C) 2008-2010 by Gustavo Narea <http://gustavonarea.net/>
+# Copyright (C) 2010 by Gustavo Narea  <http://gustavonarea.net/> and
+#                       Lorenzo M. Catucci <http://www.uniroma2.it/>.
+# Copyright (C) 2008 by Gustavo Narea <http://gustavonarea.net/>.
 #
 # This file is part of repoze.who.plugins.ldap
 # <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
@@ -34,6 +36,7 @@ G{packagetree}
 import ldap
 
 from repoze.who.plugins.ldap.plugins import LDAPAuthenticatorPlugin, \
-                                            LDAPAttributesPlugin
+                                            LDAPAttributesPlugin, \
+                                            LDAPSearchAuthenticatorPlugin
 
-__all__ = ['LDAPAuthenticatorPlugin', 'LDAPAttributesPlugin']
+__all__ = ['LDAPAuthenticatorPlugin', 'LDAPSearchAuthenticatorPlugin', 'LDAPAttributesPlugin']

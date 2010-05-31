@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 # repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
-# Copyright (C) 2008-2010 by Gustavo Narea <http://gustavonarea.net/>
+# Copyright (C) 2010 by Gustavo Narea  <http://gustavonarea.net/> and
+#                       Lorenzo M. Catucci <http://www.uniroma2.it/>.
+# Copyright (C) 2008 by Gustavo Narea <http://gustavonarea.net/>.
 #
 # This file is part of repoze.who.plugins.ldap
 # <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
@@ -46,7 +48,7 @@ setup(
     packages=find_packages(exclude=["*.tests", "demo", "demo.*"]),
     namespace_packages=['repoze', 'repoze.who', 'repoze.who.plugins'],
     zip_safe=False,
-    tests_require = ['dataflake.ldapconnection==0.3'],
+    tests_require = ['dataflake.ldapconnection < 1.1dev'],
     install_requires=[
         'repoze.who >= 1.0.6, < 2.0dev',
         'python-ldap>=2.3.5',
