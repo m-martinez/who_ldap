@@ -286,13 +286,14 @@ you will find how to use them in your application.
     `uid=carla,ou=employees,dc=example,dc=org`; if we set 
     `search_scope='onelevel'`, the entry would not be found.
 
-    The `restrict` constructor parameter allows to set additional restrictions
-    on the search; e.g. we can assert only person entries bearing
-    a telephone number starting with `999111` can login by setting:
+    If you would like to only allow some entries, you may setup a filter
+    by means of the **restrict** parameter, which is an string whose format is
+    defined by `RFC 4515 - Lightweight Directory Access Protocol (LDAP): String 
+    Representation of Search Filters <http://www.faqs.org/rfcs/rfc4515.html>`_.
+    E.g. we can assert only person entries bearing a telephone number starting
+    with `999111` can login by setting: 
     `restrict='(&(objectClass=person)(telephoneNumber=999111*))'`
     in the constructor.
-
-    numer inside our organisation to login, we could set a restriction like
 
     To configure this plugin from an INI file, you'd have to include a section 
     like this::
@@ -349,11 +350,10 @@ you will find how to use them in your application.
     
     By default it loads the attributes available for *any* entry whose *DN* is
     the same as the one found by :class:`LDAPAuthenticatorPlugin`, which is
-    desired in most situations. However, if you would like to exclude some
-    entries, you may setup a filter by means of the **restrict** parameter,
-    which is an string whose format is defined by `RFC 4515 - Lightweight 
-    Directory Access Protocol (LDAP): String Representation of Search Filters
-    <http://www.faqs.org/rfcs/rfc4515.html>`_.
+    desired in most situations.
+    However, if you would like to exclude some entries, you may setup a filter
+    by means of the **restrict** parameter, which shares the same semantics
+    as the **restrict** parameter in :class:`LDAPSearchAuthenticatorPlugin`.
 
     There is no advanced usage for this plugin, and hopefully you would never 
     need to subclass it to suit your needs.
