@@ -332,7 +332,7 @@ class LDAPAttributesPlugin(object):
     dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
     
     def __init__(self, ldap_connection, attributes=None,
-                 filterstr='(objectClass=*)', start_tls = '',
+                 restrict='(objectClass=*)', start_tls = '',
                  bind_dn = '', bind_pass =''):
         """
         Fetch LDAP attributes of the authenticated user.
@@ -343,10 +343,10 @@ class LDAPAttributesPlugin(object):
             use in your application; an interable or a comma-separate list of
             attributes in a string, or C{None} to fetch them all.
         @type attributes: C{iterable} or C{str}
-        @param filterstr: A filter for the search, as documented in U{RFC4515
+        @param restrict: A filter for the search, as documented in U{RFC4515
             <http://www.faqs.org/rfcs/rfc4515.html>}; the results won't be
             filtered unless you define this.
-        @type filterstr: C{str}
+        @type restrict: C{str}
         @param start_tls: Should we negotiate a TLS upgrade on the connection with
             the directory server?
         @type start_tls: C{str}
@@ -388,7 +388,7 @@ class LDAPAttributesPlugin(object):
         self.bind_dn   = bind_dn
         self.bind_pass = bind_pass
         self.attributes = attributes
-        self.filterstr = filterstr
+        self.restrict = restrict
     
     # IMetadataProvider
     def add_metadata(self, environ, identity):
@@ -410,7 +410,7 @@ class LDAPAttributesPlugin(object):
         args = (
             dn,
             ldap.SCOPE_BASE,
-            self.filterstr,
+            self.restrict,
             self.attributes
         )
         if self.bind_dn:

@@ -334,7 +334,7 @@ you will find how to use them in your application.
     As in the example above.
 
 
-.. class:: LDAPAttributesPlugin(ldap_connection[, attributes=None[, filterstr='(objectClass=*)']])
+.. class:: LDAPAttributesPlugin(ldap_connection[, attributes=None[, restrict='(objectClass=*)']])
 
     This plugin enables you to load data for the authenticated user 
     automatically and have it available from the WSGI environment — in the
@@ -350,7 +350,7 @@ you will find how to use them in your application.
     By default it loads the attributes available for *any* entry whose *DN* is
     the same as the one found by :class:`LDAPAuthenticatorPlugin`, which is
     desired in most situations. However, if you would like to exclude some
-    entries, you may setup a filter by means of the **filterstr** parameter,
+    entries, you may setup a filter by means of the **restrict** parameter,
     which is an string whose format is defined by `RFC 4515 - Lightweight 
     Directory Access Protocol (LDAP): String Representation of Search Filters
     <http://www.faqs.org/rfcs/rfc4515.html>`_.
