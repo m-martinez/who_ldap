@@ -168,26 +168,32 @@ you will find how to use them in your application.
 
 .. module:: repoze.who.plugins.ldap
 
-.. class:: LDAPAuthenticatorPlugin(ldap_connection, base_dn)
+    The module does export two different **concrete** authentication plugins,
+    both derived from `LDAPBaseAuthenticatorPlugin`.
 
-    This is the main plugin. It's in charge of the LDAP authentication itself
-    using the LDAP connection object provided in the constructor
+.. class:: LDAPBaseAuthenticatorPlugin(ldap_connection, base_dn, 
+    naming_attribute='uid', returned_id='dn', start_tls=False, 
+    bind_dn='', bind_pass='')
+
+    Any class deriving from this one is in charge of the LDAP authentication 
+    itself, using the LDAP connection object provided in the constructor
     (**ldap_connection**) — which can be an LDAP URL or an
     `ldap.ldapobject.SimpleLDAPObject` instance.
-    
-    It connects to the specified LDAP server and tries to `bind` with the
-    `Distinguished Name` (DN) made by joining the `login` in the `identity`
-    dictionary as the user id (`uid`) and the **base_dn** specified in the
-    constructor, and then it binds with the `password` found in the `identity`
-    dictionary.
-    
-    For example, if the `login` provided by the identifier is `carla` and the
-    **base_dn** provided in the constructor is `ou=employees,dc=example,dc=org`,
-    the resulting DN will be `uid=carla,ou=employees,dc=example,dc=org`.
 
-    Therefore this plugin is compatible with any `identifier plugin` that 
-    defines the `login` and `password` items in the `identity` dictionary (the
-    `identifier plugins` provided by the built-in `repoze.who.plugins.form`
+    On default settings, the returned identity will be the full DN; if your
+    downstream WSGI application needs to use the bare login, you must
+    `returned_id='login'` in the contructor.
+
+    If the parameter `start_tls` is set to a `True` value, any communication
+    with the directory server will be encrypted.
+
+    If the parameters `bind_dn` and `bind_pass` are set to non-empty
+    strings, before doing any operation, the plugin will try to bind with
+    the server using the supplied credentials.
+
+    This plugin and its subclasses are compatible with any `identifier plugin`
+    that defines the `login` and `password` items in the `identity` dictionary
+    (the `identifier plugins` provided by the built-in `repoze.who.plugins.form`
     plugin are some of them).
 
     It is a highly customizable plugin which can be adapted to your needs with
@@ -197,14 +203,13 @@ you will find how to use them in your application.
     **_get_dn** method you would get such value from the WSGI environment
     object (**environ**).
     
-    You may change the way the DN is created by subclassing
-    :class:`LDAPAuthenticatorPlugin` to override the *_get_dn* method. For
-    example, say in your company (with `dc=yourcompany,dc.com` as its DN)
-    everybody belongs to the `Organizational Unit` (OU) **employees**
-    (`ou=employees`), except the shareholders who belong to the OU
-    **shareholders** (`ou=shareholders`)::
+    Any derived class must set the way the DN is created by overriding
+    the empty *_get_dn* method. For example, say in your company 
+    (with `dc=yourcompany,dc.com` as its DN) everybody belongs to 
+    the `Organizational Unit` (OU) **employees** (`ou=employees`), except
+    the shareholders who belong to the OU **shareholders** (`ou=shareholders`)::
     
-        class YourCompanyLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
+        class YourCompanyLDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
             """Sample LDAP authenticator adapted to your company."""
             
             shareholders = ('lgarcia, 'mferreira', 'cnarea')
@@ -224,7 +229,34 @@ you will find how to use them in your application.
     
     It is possibly an useless example on how to customize the way the DN is
     found, but it's enough to show how to override it.
-        
+    
+    If you're using a custom LDAP authenticator, as in the example above, you
+    would have to change the `use` directive accordingly — for example::
+    
+        [plugin:ldap_auth]
+        use = yourpackage.lib.auth:YourCompanyLDAPAuthenticatorPlugin
+        ldap_connection = ldap://yourcompany.com
+        base_dn = ou=employees,dc=yourcompany,dc=com
+
+.. class:: LDAPAuthenticatorPlugin(ldap_connection, base_dn, 
+    naming_attribute='uid', returned_id='dn')
+
+    This plugin connects to the specified LDAP server and tries to `bind` with the
+    `Distinguished Name` (DN) made by joining the `login` in the `identity`
+    dictionary as the naming attribute value and the **base_dn** specified in the
+    constructor, and then it tries to bind with the `password` found in the
+    `identity` dictionary; As a default, the used naming attribute is the 
+    user id (`uid`).
+    
+    For example, if the `login` provided by the identifier is `carla` and the
+    **base_dn** provided in the constructor is `ou=employees,dc=example,dc=org`,
+    the resulting DN will be `uid=carla,ou=employees,dc=example,dc=org`.
+
+    If the directory server's naming attribute were the `email` attribute,
+    and we provided naming_attribute='email' in the constructor, the DN
+    resulting for the identifier `carla@example.org` would be
+    `email=carla@example.org,ou=employees,dc=example,dc=org`.
+
     To configure this plugin from an INI file, you'd have to include a section 
     like this::
     
@@ -232,11 +264,46 @@ you will find how to use them in your application.
         use = repoze.who.plugins.ldap:LDAPAuthenticatorPlugin
         ldap_connection = ldap://yourcompany.com
         base_dn = ou=employees,dc=yourcompany,dc=com
+        naming_attribute = uid
+        start_tls = True
     
-    If you're using a custom LDAP authenticator, as in the example above, you
-    would have to change the `use` directive accordingly — for example::
+.. class:: LDAPSearchAuthenticatorPlugin(ldap_connection, base_dn, 
+    naming_attribute='uid', search_scope='subtree', restrict='', returned_id='dn')
+
+    This plugin connects to the specified LDAP server and searches an entry
+    residing below the **base_dn**, whose naming attribute's value is equal
+    to the supplied login. If such an entry is found, it tries to bind as the
+    entry's DN with the `password` found in the `identity` dictionary; As a 
+    default, the used naming attribute is the user id (`uid`).
+
+    The `search_scope` parameter in the constructor allows to choose whether
+    to search the entry in the whole subtree below **base_dn**, or just on
+    the level below if set as `search_scope='onelevel'`.
+
+    For example, if the `login` provided by the identifier is `carla` and the
+    **base_dn** provided in the constructor is `dc=example,dc=org`,
+    with the default settings, the system could find the entry
+    `uid=carla,ou=employees,dc=example,dc=org`; if we set 
+    `search_scope='onelevel'`, the entry would not be found.
+
+    The `restrict` constructor parameter allows to set additional restrictions
+    on the search; e.g. we can assert only person entries bearing
+    a telephone number starting with `999111` can login by setting:
+    `restrict='(&(objectClass=person)(telephoneNumber=999111*))'`
+    in the constructor.
+
+    numer inside our organisation to login, we could set a restriction like
+
+    To configure this plugin from an INI file, you'd have to include a section 
+    like this::
     
-        use = yourpackage.lib.auth:YourCompanyLDAPAuthenticatorPlugin
+        [plugin:ldap_auth]
+        use = repoze.who.plugins.ldap:LDAPSearchAuthenticatorPlugin
+        ldap_connection = ldap://yourcompany.com
+        base_dn = ou=employees,dc=yourcompany,dc=com
+        naming_attribute = uid
+        search_scope = subtree
+        start_tls = True
     
     Finally, add the plugin to the set of authenticators::
     
@@ -248,6 +315,10 @@ you will find how to use them in your application.
     below::
     
         ldap_auth = LDAPAuthenticatorPlugin('ldap://ldap.yourcompany.com',
+                                            'ou=developers,dc=yourcompany,dc=com')
+    or, respectively::
+
+        ldap_auth = LDAPSearchAuthenticatorPlugin('ldap://ldap.yourcompany.com',
                                             'ou=developers,dc=yourcompany,dc=com')
     
     But if you're using a custom LDAP authenticator, you would have to use the

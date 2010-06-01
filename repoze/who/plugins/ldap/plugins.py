@@ -16,8 +16,8 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 """LDAP plugins for repoze.who."""
 
-__all__ = ['LDAPAuthenticatorPlugin', 'LDAPSearchAuthenticatorPlugin',
-           'LDAPAttributesPlugin']
+__all__ = ['LDAPBaseAuthenticatorPlugin', 'LDAPAuthenticatorPlugin',
+           'LDAPSearchAuthenticatorPlugin', 'LDAPAttributesPlugin']
 
 from zope.interface import implements
 import ldap
@@ -42,9 +42,9 @@ class LDAPBaseAuthenticatorPlugin(object):
         
         By passing an existing LDAPObject, you're free to use the LDAP
         authentication method you want, the way you want.
-    
-        If the default way to find the DN is not suitable for you, you must
-        override L{_get_dn}.
+   
+        This plugin is useless in itself; any derived class must implement
+        a suitable L{_get_dn} method to let the gears turn...
         
         This plugin is compatible with any identifier plugin that defines the
         C{login} and C{password} items in the I{identity} dictionary.
@@ -225,9 +225,6 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         By passing an existing LDAPObject, you're free to use the LDAP
         authentication method you want, the way you want.
     
-        If the default way to find the DN is not suitable for you, you may want
-        to override L{_get_dn}.
-        
         This plugin is compatible with any identifier plugin that defines the
         C{login} and C{password} items in the I{identity} dictionary.
         
