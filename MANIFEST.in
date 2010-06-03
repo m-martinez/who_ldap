@@ -1,5 +1,4 @@
 include README
-include CHANGELOG
 include VERSION
 include LICENSE
 include MANIFEST.in
