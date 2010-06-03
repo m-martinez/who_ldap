@@ -1,7 +1,7 @@
 repoze.who.plugins.ldap Changelog
 =================================
 
-1.1 Alpha 1 (unreleased)
+1.1 Alpha 1 (2010-01-03)
 ------------------------
 
 

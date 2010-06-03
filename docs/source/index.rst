@@ -36,6 +36,7 @@ Get started!
     Install
     Using
     Demo
+    Changes
 
 You can also browse `the online API documentation
 <http://code.gustavonarea.net/repoze.who.plugins.ldap/api/>`_, or generate it

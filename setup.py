@@ -21,7 +21,7 @@ from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README')).read()
-CHANGELOG = open(os.path.join(here, 'CHANGELOG')).read()
+CHANGELOG = open(os.path.join(here, "docs", "source", 'Changes.rst')).read()
 version = open(os.path.join(here, 'VERSION')).readline().rstrip()
 
 setup(
