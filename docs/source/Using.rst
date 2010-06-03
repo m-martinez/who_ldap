@@ -163,13 +163,13 @@ on how to implement `repoze.who` in the framework you are using:
 Using the LDAP plugins for repoze.who
 =====================================
 
-Once you've setup `repoze.who`, you'll be ready to use its LDAP plugins. Below
-you will find how to use them in your application.
-
 .. module:: repoze.who.plugins.ldap
 
-    The module does export two different **concrete** authentication plugins,
-    both derived from :class:`LDAPBaseAuthenticatorPlugin`.
+Once you've setup `repoze.who`, you'll be ready to use its LDAP plugins. Below
+you will find how to use them in your application. The
+:mod:`repoze.who.plugins.ldap` module export two different **concrete**
+authentication plugins, both derived from :class:`LDAPBaseAuthenticatorPlugin`.
+
 
 .. class:: LDAPBaseAuthenticatorPlugin(ldap_connection, base_dn, naming_attribute='uid', returned_id='dn', start_tls=False, bind_dn='', bind_pass='')
 
@@ -180,7 +180,7 @@ you will find how to use them in your application.
 
     By default, the returned user name will be the full DN; if your
     downstream WSGI application needs to use the bare login, you must set
-    ``returned_id` to ``'login'``.
+    ``returned_id`` to ``'login'``.
 
     If the parameter `start_tls` is set to a `True` value, any communication
     with the directory server will be encrypted.
@@ -222,15 +222,17 @@ you will find how to use them in your application.
                     return u'uid=%s,ou=%s,%s' % (identity['login'], ou,
                                                  self.base_dn)
                 except (KeyError, TypeError):
-                    raise ValueError, ('Could not find the DN from the identity '
-                                       'and environment')
+                    raise ValueError('Could not find the DN from the identity '
+                                     'and environment')
     
     It is possibly an useless example on how to customize the way the DN is
     found, but it's enough to show how to override it.
     
     If you're using a custom LDAP authenticator, as in the example above, you
-    would have to change the `use` directive accordingly — for example::
+    would have to change the `use` directive accordingly -- for example:
     
+    .. code-block:: ini
+        
         [plugin:ldap_auth]
         use = yourpackage.lib.auth:YourCompanyLDAPAuthenticatorPlugin
         ldap_connection = ldap://yourcompany.com
@@ -292,7 +294,9 @@ you will find how to use them in your application.
     in the constructor.
 
     To configure this plugin from an INI file, you'd have to include a section 
-    like this::
+    like this:
+    
+    .. code-block:: ini
     
         [plugin:ldap_auth]
         use = repoze.who.plugins.ldap:LDAPSearchAuthenticatorPlugin
@@ -314,7 +318,7 @@ you will find how to use them in your application.
         ldap_auth = LDAPAuthenticatorPlugin('ldap://ldap.yourcompany.com',
                                             'ou=developers,dc=yourcompany,dc=com')
     or, respectively::
-
+    
         ldap_auth = LDAPSearchAuthenticatorPlugin('ldap://ldap.yourcompany.com',
                                             'ou=developers,dc=yourcompany,dc=com')
     
