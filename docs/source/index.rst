@@ -4,7 +4,7 @@ repoze.who.plugins.ldap - LDAP Authentication for WSGI Applications
 
 :Author: `Gustavo Narea <http://gustavonarea.net/>`_
 :Version: |release|
-:License: GNU General Public License v3
+:License: `Repoze <http://repoze.org/license.html>`_ (GPLv3 in v1.0).
 :Homepage: http://code.gustavonarea.net/repoze.who.plugins.ldap/
 
 .. module:: repoze.who.plugins.ldap
@@ -60,17 +60,6 @@ Development-related links include:
  - `Bazaar branches <https://code.launchpad.net/repoze.who.plugins.ldap>`_.
 
 
-Applications using the plugin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The repoze.who LDAP plugin is being used in the following applications:
-
- * `Animador <https://tracker.gnulinuxmatters.org/wiki/Animador>`_.
-
-If your're using this plugin in your application(s), please let me know! Your
-implementation may be useful for somebody else.
-
-
 Contributing
 ============
 
@@ -84,23 +73,13 @@ stick to PEPs `8 <http://www.python.org/dev/peps/pep-0008/>`_ and `257
 Thanks!
 =======
 
-This plugin was made possible thanks to the people below:
+This plugin exists thanks to the people below:
 
  - **Lorenzo M. Catucci**, of the `University of Rome "Tor Vergata"
-   <http://www.uniroma2.it/>`_, for implementing all of the new features in v1.1.
+   <http://www.uniroma2.it/>`_, for implementing and documenting *all* the new
+   features in v1.1.
  - **Chris McDonough**, for his guidance throughout the initial development of
    the plugin.
-
-
-Copyright notice for this documentation
-=======================================
-
-Copyright (c) 2008-2010, by Gustavo Narea.
-
-Permission is granted to copy, distribute and/or modify this document under the
-terms of the `GNU Free Documentation License <http://www.gnu.org/copyleft/fdl.html>`_,
-Version 1.2 or any later version published by the Free Software Foundation; with
-no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 
 
 Indices and tables
