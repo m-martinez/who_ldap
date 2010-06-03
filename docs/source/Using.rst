@@ -155,9 +155,11 @@ Framework-specific documentation
 You may want to check the following framework-specific documents to learn tips
 on how to implement `repoze.who` in the framework you are using:
 
- * **Pylons:** `Authentication and Authorization with repoze.who
+ * **Pylons**: `Authentication and Authorization with repoze.who
    <http://wiki.pylonshq.com/display/pylonscookbook/Authentication+and+Authorization+with+%60repoze.who%60>`_.
- * TurboGears.
+ * **TurboGears 2**: `Authentication and Authorization in TurboGears 2
+   <http://www.turbogears.org/2.1/docs/main/Auth/index.html>`_
+   (:mod:`repoze.who` is the default authentication library).
 
 
 Using the LDAP plugins for repoze.who
