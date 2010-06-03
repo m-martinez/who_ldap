@@ -16,8 +16,8 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 """LDAP plugins for repoze.who."""
 
-__all__ = ['LDAPAuthenticatorPlugin', 'LDAPSearchAuthenticatorPlugin',
-           'LDAPAttributesPlugin']
+__all__ = ['LDAPBaseAuthenticatorPlugin', 'LDAPAuthenticatorPlugin',
+           'LDAPSearchAuthenticatorPlugin', 'LDAPAttributesPlugin']
 
 from zope.interface import implements
 import ldap
@@ -42,9 +42,10 @@ class LDAPBaseAuthenticatorPlugin(object):
         
         By passing an existing LDAPObject, you're free to use the LDAP
         authentication method you want, the way you want.
-    
-        If the default way to find the DN is not suitable for you, you must
-        override L{_get_dn}.
+   
+        This is an *abstract* class, which means it's useless in itself. You
+        can only use subclasses of this class that implement the L{_get_dn}
+        method (e.g., the built-in authenticators).
         
         This plugin is compatible with any identifier plugin that defines the
         C{login} and C{password} items in the I{identity} dictionary.
@@ -225,9 +226,6 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         By passing an existing LDAPObject, you're free to use the LDAP
         authentication method you want, the way you want.
     
-        If the default way to find the DN is not suitable for you, you may want
-        to override L{_get_dn}.
-        
         This plugin is compatible with any identifier plugin that defines the
         C{login} and C{password} items in the I{identity} dictionary.
         
@@ -335,8 +333,8 @@ class LDAPAttributesPlugin(object):
     dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
     
     def __init__(self, ldap_connection, attributes=None,
-                 filterstr='(objectClass=*)', start_tls = '',
-                 bind_dn = '', bind_pass =''):
+                 filterstr='(objectClass=*)', start_tls='',
+                 bind_dn='', bind_pass=''):
         """
         Fetch LDAP attributes of the authenticated user.
         

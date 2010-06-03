@@ -35,7 +35,8 @@ G{packagetree}
 
 import ldap
 
-from repoze.who.plugins.ldap.plugins import LDAPAuthenticatorPlugin, \
+from repoze.who.plugins.ldap.plugins import LDAPBaseAuthenticatorPlugin, \
+                                            LDAPAuthenticatorPlugin, \
                                             LDAPAttributesPlugin, \
                                             LDAPSearchAuthenticatorPlugin
 
