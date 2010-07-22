@@ -1,6 +1,14 @@
 repoze.who.plugins.ldap Changelog
 =================================
 
+1.2 Alpha 2 (unreleased)
+------------------------
+
+ - Fixed installation problems under Windows (`Bug #608622
+   <https://bugs.launchpad.net/repoze.who.plugins.ldap/+bug/608622>`_).
+
+
+
 1.1 Alpha 1 (2010-01-03)
 ------------------------
 
