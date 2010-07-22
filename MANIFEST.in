@@ -3,12 +3,12 @@ include VERSION
 include LICENSE
 include MANIFEST.in
 
-recursive-include docs/ *
+recursive-include docs *
 prune docs/build
 prune docs/api
 
-recursive-include demo/ *
-recursive-exclude demo/ *.egg *.db *.po
+recursive-include demo *
+recursive-exclude demo *.egg *.db *.po
 prune demo/LDAPAuth.egg-info
 prune demo/ez_setup
 
