@@ -24,12 +24,11 @@ import re
 
 import ldap
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
-from zope.interface import implements
+from zope.interface import implementer
 
 
+@implementer(IAuthenticator)
 class LDAPBaseAuthenticatorPlugin(object):
-
-    implements(IAuthenticator)
 
     def __init__(self, ldap_connection, base_dn, returned_id='dn',
                  start_tls=False, bind_dn='', bind_pass='', **kwargs):
@@ -319,10 +318,9 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
             raise e
 
 
+@implementer(IMetadataProvider)
 class LDAPAttributesPlugin(object):
     """Loads LDAP attributes of the authenticated user."""
-
-    implements(IMetadataProvider)
 
     dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
 
