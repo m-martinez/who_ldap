@@ -102,9 +102,8 @@ class LDAPBaseAuthenticatorPlugin(object):
         @raise ValueError: If the C{login} key is not in the I{identity} dict.
 
         """
-        raise ValueError('Unimplemented')
+        raise NotImplementedError
 
-    # IAuthenticatorPlugin
     def authenticate(self, environ, identity):
         """Return the naming identifier of the user to be authenticated.
 
@@ -178,8 +177,8 @@ class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 
 
         """
-        LDAPBaseAuthenticatorPlugin.__init__(self, ldap_connection, base_dn,
-                                             **kwargs)
+        super(LDAPAuthenticatorPlugin, self).__init__(
+            ldap_connection, base_dn, **kwargs)
         self.naming_pattern = u'%s=%%s,%%s' % naming_attribute
 
     def _get_dn(self, environ, identity):
@@ -257,8 +256,8 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         @param bind_pass: The password for bind_dn directory entry
 
         """
-        LDAPBaseAuthenticatorPlugin.__init__(self, ldap_connection, base_dn,
-                                             **kwargs)
+        super(LDAPSearchAuthenticatorPlugin, self).__init__(
+            ldap_connection, base_dn, **kwargs)
 
         if search_scope[:3].lower() == 'sub':
             self.search_scope = ldap.SCOPE_SUBTREE
