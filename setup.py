@@ -21,6 +21,11 @@ from subprocess import Popen, PIPE
 import sys
 
 
+if sys.version_info < (2, 6):
+    raise Exception(
+        'repoze.who.plugins.ldap requires Python 2.6 or higher.')
+
+
 HERE = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(HERE, 'README')).read()
 CHANGELOG = open(os.path.join(HERE, 'docs', 'source', 'Changes.rst')).read()
@@ -28,16 +33,16 @@ CHANGELOG = open(os.path.join(HERE, 'docs', 'source', 'Changes.rst')).read()
 
 REQUIRES = [
     'repoze.who',
-    'python-ldap',
+    'python3-ldap',
     'setuptools',
-    'zope.interface'
+    'zope.interface',
+    'zope.dottedname',
     ]
 
 
 EXTRAS = {
     'test': [
         'nose', 'rednose', 'coverage',
-        'dataflake.ldapconnection'
         ]
 }
 

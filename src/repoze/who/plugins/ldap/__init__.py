@@ -20,14 +20,18 @@ __all__ = ['LDAPBaseAuthenticatorPlugin', 'LDAPAuthenticatorPlugin',
            'LDAPSearchAuthenticatorPlugin', 'LDAPAttributesPlugin']
 
 from base64 import b64encode, b64decode
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 import re
 
-import ldap
+import ldap3
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
+from repoze.who.utils import resolveDotted
 from zope.interface import implementer
 
 
-@implementer(IAuthenticator)
 class LDAPBaseAuthenticatorPlugin(object):
 
     def __init__(self, ldap_connection, base_dn, returned_id='dn',
@@ -69,13 +73,11 @@ class LDAPBaseAuthenticatorPlugin(object):
         """
         if base_dn is None:
             raise ValueError('A base Distinguished Name must be specified')
-        self.ldap_connection = make_ldap_connection(ldap_connection)
 
-        if start_tls:
-            try:
-                self.ldap_connection.start_tls_s()
-            except:
-                raise ValueError('Cannot upgrade the connection')
+        uri = urlparse(ldap_connection)
+        self.server = ldap3.Server(uri.hostname,
+                                   port=uri.port or 389,
+                                   useSsl=(start_tls or uri.scheme == 'ldaps'))
 
         self.bind_dn = bind_dn
         self.bind_pass = bind_pass
@@ -118,13 +120,8 @@ class LDAPBaseAuthenticatorPlugin(object):
         except (KeyError, TypeError, ValueError):
             return None
 
-        if not hasattr(self.ldap_connection, 'simple_bind_s'):
-            environ['repoze.who.logger'].warn('Cannot bind with the provided '
-                                              'LDAP connection object')
-            return None
-
         try:
-            self.ldap_connection.simple_bind_s(dn, password)
+            ldap3.Connection(self.server, dn, password, autoBind=True).close()
             userdata = identity.get('userdata', '')
             # The credentials are valid!
             if self.ret_style == 'd':
@@ -132,13 +129,14 @@ class LDAPBaseAuthenticatorPlugin(object):
             else:
                 identity['userdata'] = userdata + '<dn:%s>' % b64encode(dn)
                 return identity['login']
-        except ldap.LDAPError:
+        except:
             return None
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, id(self))
 
 
+@implementer(IAuthenticator)
 class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 
     def __init__(self, ldap_connection, base_dn, naming_attribute='uid',
@@ -197,22 +195,22 @@ class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         @raise ValueError: If the C{login} key is not in the I{identity} dict.
 
         """
-
         if self.bind_dn:
-            try:
-                self.ldap_connection.bind_s(self.bind_dn, self.bind_password)
-            except ldap.LDAPError:
-                raise ValueError('Couldn\'t bind with supplied credentials')
+            conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
+                                    autoBind=True)
+            conn.close()
         try:
             return self.naming_pattern % (identity['login'], self.base_dn)
         except (KeyError, TypeError):
             raise ValueError
 
 
+@implementer(IAuthenticator)
 class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 
     def __init__(self, ldap_connection, base_dn, naming_attribute='uid',
-                 search_scope='subtree', restrict='', **kwargs):
+                 search_scope='SEARCH_SCOPE_WHOLE_SUBTREE', restrict='',
+                 **kwargs):
         """Create an LDAP authentication plugin determining the DN via LDAP
         searches.
 
@@ -260,12 +258,12 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
             ldap_connection, base_dn, **kwargs)
 
         if search_scope[:3].lower() == 'sub':
-            self.search_scope = ldap.SCOPE_SUBTREE
+            self.search_scope = ldap3.SEARCH_SCOPE_WHOLE_SUBTREE
         elif search_scope[:3].lower() == 'one':
-            self.search_scope = ldap.SCOPE_ONELEVEL
+            self.search_scope = ldap3.SEARCH_SCOPE_SINGLE_LEVEL
         else:
             raise ValueError(
-                'The search scope should be \'one[level]\' or \'sub[tree]\'')
+                'The search scope should be \'one[level]\' or \'sub[tree]\')')
 
         if restrict:
             self.search_pattern = u'(&%s(%s=%%s))' % (
@@ -292,29 +290,23 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         @raise ValueError: If the C{login} key is not in the I{identity} dict.
 
         """
-
         if self.bind_dn:
-            try:
-                self.ldap_connection.bind_s(self.bind_dn, self.bind_password)
-            except ldap.LDAPError:
-                raise ValueError("Couldn't bind with supplied credentials")
-        try:
-            login_name = identity['login'].replace('*', r'\*')
-            srch = self.search_pattern % login_name
-            dn_list = self.ldap_connection.search_s(
-                self.base_dn,
-                self.search_scope,
-                srch,
-                )
+            conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
+                                    autoBind=True)
+        else:
+            conn = ldap3.Connection(self.server)
 
-            if len(dn_list) == 1:
-                return dn_list[0][0]
-            elif len(dn_list) > 1:
-                raise ValueError('Too many entries found for %s' % srch)
-            else:
-                raise ValueError('No entry found for %s' % srch)
-        except (KeyError, TypeError, ldap.LDAPError) as e:
-            raise e
+        login_name = identity['login'].replace('*', r'\*')
+        srch = self.search_pattern % login_name
+        conn.search(self.base_dn, srch, self.search_scope)
+        dn_list = conn.response
+        conn.close()
+        if len(dn_list) == 1:
+            return dn_list[0]['dn']
+        elif len(dn_list) > 1:
+            raise ValueError('Too many entries found for %s' % srch)
+        else:
+            raise ValueError('No entry found for %s' % srch)
 
 
 @implementer(IMetadataProvider)
@@ -325,7 +317,7 @@ class LDAPAttributesPlugin(object):
 
     def __init__(self, ldap_connection, attributes=None,
                  filterstr='(objectClass=*)', start_tls='',
-                 bind_dn='', bind_pass=''):
+                 bind_dn='', bind_pass='', name=None, filter=None):
         """
         Fetch LDAP attributes of the authenticated user.
 
@@ -370,17 +362,17 @@ class LDAPAttributesPlugin(object):
             attributes = list(attributes)
         elif attributes is not None:
             raise ValueError('The needed LDAP attributes are not valid')
-        self.ldap_connection = make_ldap_connection(ldap_connection)
-        if start_tls:
-            try:
-                self.ldap_connection.start_tls_s()
-            except:
-                raise ValueError('Cannot upgrade the connection')
 
+        uri = urlparse(ldap_connection)
+        self.server = ldap3.Server(uri.hostname,
+                                   port=uri.port or 389,
+                                   useSsl=(start_tls or uri.scheme == 'ldaps'))
+        self.name = None
         self.bind_dn = bind_dn
         self.bind_pass = bind_pass
         self.attributes = attributes
         self.filterstr = filterstr
+        self.filter
 
     # IMetadataProvider
     def add_metadata(self, environ, identity):
@@ -399,44 +391,22 @@ class LDAPAttributesPlugin(object):
             dn = b64decode(dnmatch.group('b64dn'))
         else:
             dn = identity.get('repoze.who.userid')
-        args = (
-            dn,
-            ldap.SCOPE_BASE,
-            self.filterstr,
-            self.attributes
-        )
+
         if self.bind_dn:
-            try:
-                self.ldap_connection.bind_s(self.bind_dn, self.bind_pass)
-            except ldap.LDAPError:
-                raise ValueError("Couldn't bind with supplied credentials")
-        try:
-            attributes = self.ldap_connection.search_s(*args)
-        except ldap.LDAPError, msg:
-            environ['repoze.who.logger'].warn('Cannot add metadata: %s' % msg)
-            raise Exception(identity)
+            conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
+                                    autoBind=True)
         else:
-            identity.update(attributes[0][1])
+            conn = ldap3.Connection(self.server)
 
+        result = conn.search(dn,
+                             self.filterstr,
+                             ldap3.SEARCH_SCOPE_BASE_OBJECT,
+                             attributes=self.attributes)
 
-def make_ldap_connection(ldap_connection):
-    """Return an LDAP connection object to the specified server.
+        if not result:
+            environ['repoze.who.logger'].warn(
+                'Cannot add metadata: %s' % conn.result)
+            raise Exception(identity)
 
-    If the C{ldap_connection} is already an LDAP connection object, it will
-    be returned as is. If it's an LDAP URL, it will return an LDAP connection
-    to the LDAP server specified in the URL.
-
-    @param ldap_connection: The LDAP connection object or the LDAP URL of the
-        server to be connected to.
-    @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject}, C{str} or
-        C{unicode}
-    @return: The LDAP connection object.
-    @rtype: C{ldap.ldapobject.SimpleLDAPObject}
-    @raise ValueError: If C{ldap_connection} is C{None}.
-
-    """
-    if isinstance(ldap_connection, basestring):
-        return ldap.initialize(ldap_connection)
-    elif ldap_connection is None:
-        raise ValueError('An LDAP connection must be specified')
-    return ldap_connection
+        response = conn.response
+        identity.update(response[0]['attributes'])
