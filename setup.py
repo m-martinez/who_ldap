@@ -36,7 +36,6 @@ REQUIRES = [
     'python3-ldap',
     'setuptools',
     'zope.interface',
-    'zope.dottedname',
     ]
 
 
