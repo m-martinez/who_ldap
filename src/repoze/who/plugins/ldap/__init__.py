@@ -117,7 +117,7 @@ class LDAPBaseAuthenticatorPlugin(object):
             return None
 
         try:
-            ldap3.Connection(self.server, dn, password, autoBind=True).close()
+            ldap3.Connection(self.server, dn, password, auto_bind=True).close()
             userdata = identity.get('userdata', '')
             # The credentials are valid!
             if self.ret_style == 'd':
@@ -193,7 +193,7 @@ class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         """
         if self.bind_dn:
             conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
-                                    autoBind=True)
+                                    auto_bind=True)
             conn.close()
         try:
             return self.naming_pattern % (identity['login'], self.base_dn)
@@ -290,7 +290,7 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         """
         if self.bind_dn:
             conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
-                                    autoBind=True)
+                                    auto_bind=True)
         else:
             conn = ldap3.Connection(self.server)
 
@@ -395,7 +395,7 @@ class LDAPAttributesPlugin(object):
 
         if self.bind_dn:
             conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
-                                    autoBind=True)
+                                    auto_bind=True)
         else:
             conn = ldap3.Connection(self.server)
 
@@ -504,7 +504,7 @@ class LDAPGroupsPlugin(object):
 
         if self.bind_dn:
             conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
-                                    autoBind=True)
+                                    auto_bind=True)
         else:
             conn = ldap3.Connection(self.server)
 
