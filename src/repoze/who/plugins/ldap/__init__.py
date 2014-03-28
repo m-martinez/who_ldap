@@ -541,7 +541,7 @@ def create_server(uri, start_tls=False):
     uri = urlparse(uri)
     ssl = uri.scheme == 'ldaps'
     port = uri.port or (636 if ssl else 389)
-    server = ldap3.Server(uri.hostname, port=port, useSsl=ssl)
+    server = ldap3.Server(uri.hostname, port=port, use_ssl=ssl)
 
     if start_tls:
         server.tls = ldap3.Tls()
