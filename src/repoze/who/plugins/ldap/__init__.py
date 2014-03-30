@@ -407,9 +407,8 @@ class LDAPAttributesPlugin(object):
                                          else self.attributes.keys()))
 
         if not status:
-            environ['repoze.who.logger'].warn(
-                'Cannot add metadata: %s' % conn.result)
-            raise Exception(identity)
+            raise Exception('Cannot add metadata for %s: %s'
+                            % (dn, conn.result))
 
         result = {}
 
@@ -514,9 +513,8 @@ class LDAPGroupsPlugin(object):
                              attributes=[self.naming_attribute])
 
         if not status:
-            environ['repoze.who.logger'].warn(
-                'Cannot add metadata: %s' % conn.result)
-            raise Exception(identity)
+            raise Exception('Cannot add metadata for %s: %s'
+                            % (dn, conn.result))
 
         groups = tuple(r['attributes'][self.naming_attribute][0]
                        for r in conn.response)
