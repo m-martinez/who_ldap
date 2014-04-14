@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 #
 # repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
-# Copyright (C) 2010 by Gustavo Narea  <http://gustavonarea.net/> and
-#                       Lorenzo M. Catucci <http://www.uniroma2.it/>.
-# Copyright (C) 2008 by Gustavo Narea <http://gustavonarea.net/>.
+# Copyright (C) 2010-2014 by contributors <see CONTRIBUTORS file>
 #
 # This file is part of repoze.who.plugins.ldap
-# <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
+# <https://bitbucket.org/marcomartinez/repoze.who.plugins.ldap>
 #
 # This software is subject to the provisions of the BSD-like license at
 # http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
@@ -19,11 +17,6 @@ import os
 from setuptools import setup, find_packages
 from subprocess import Popen, PIPE
 import sys
-
-
-if sys.version_info < (2, 6):
-    raise Exception(
-        'repoze.who.plugins.ldap requires Python 2.6 or higher.')
 
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -40,9 +33,7 @@ REQUIRES = [
 
 
 EXTRAS = {
-    'test': [
-        'nose', 'rednose', 'coverage',
-        ]
+    'test': ['nose', 'mock', 'coverage']
 }
 
 

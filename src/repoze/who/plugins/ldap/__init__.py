@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 #
 # repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
-# Copyright (C) 2010 by Gustavo Narea  <http://gustavonarea.net/> and
-#                       Lorenzo M. Catucci <http://www.uniroma2.it/>.
-# Copyright (C) 2008 by Gustavo Narea <http://gustavonarea.net/>.
+# Copyright (C) 2010-2014 by contributors <see CONTRIBUTORS file>
 #
 # This file is part of repoze.who.plugins.ldap
-# <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
+# <https://bitbucket.org/marcomartinez/repoze.who.plugins.ldap>
 #
 # This software is subject to the provisions of the BSD-like license at
 # http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
-# this distribution.  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL
+# this distribution.  THIS SOFTWARE IS PROVIDED 'AS IS' AND ANY AND ALL
 # EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
 # THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
 # FITNESS FOR A PARTICULAR PURPOSE.
-"""LDAP plugins for repoze.who."""
+"""
+LDAP plugins for repoze.who.
+"""
 
 __all__ = ['LDAPBaseAuthenticatorPlugin', 'LDAPAuthenticatorPlugin',
            'LDAPSearchAuthenticatorPlugin', 'LDAPAttributesPlugin']
@@ -33,9 +33,16 @@ from zope.interface import implementer
 
 class LDAPBaseAuthenticatorPlugin(object):
 
-    def __init__(self, ldap_connection, base_dn, returned_id='dn',
-                 start_tls=False, bind_dn='', bind_pass='', **kwargs):
-        """Create an LDAP authentication plugin.
+    def __init__(self,
+                 ldap_connection,
+                 base_dn,
+                 returned_id='dn',
+                 start_tls=False,
+                 bind_dn='',
+                 bind_pass='',
+                 **kwargs):
+        """
+        Create an LDAP authentication plugin.
 
         By passing an existing LDAPObject, you're free to use the LDAP
         authentication method you want, the way you want.
@@ -135,9 +142,13 @@ class LDAPBaseAuthenticatorPlugin(object):
 @implementer(IAuthenticator)
 class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 
-    def __init__(self, ldap_connection, base_dn, naming_attribute='uid',
+    def __init__(self,
+                 ldap_connection,
+                 base_dn,
+                 naming_attribute='uid',
                  **kwargs):
-        """Create an LDAP authentication plugin using pattern-determined DNs
+        """
+        Create an LDAP authentication plugin using pattern-determined DNs
 
         By passing an existing LDAPObject, you're free to use the LDAP
         authentication method you want, the way you want.
@@ -204,8 +215,12 @@ class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 @implementer(IAuthenticator)
 class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
 
-    def __init__(self, ldap_connection, base_dn, naming_attribute='uid',
-                 search_scope='SEARCH_SCOPE_WHOLE_SUBTREE', restrict='',
+    def __init__(self,
+                 ldap_connection,
+                 base_dn,
+                 naming_attribute='uid',
+                 search_scope='SEARCH_SCOPE_WHOLE_SUBTREE',
+                 restrict='',
                  **kwargs):
         """Create an LDAP authentication plugin determining the DN via LDAP
         searches.
@@ -313,9 +328,15 @@ class LDAPAttributesPlugin(object):
 
     dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
 
-    def __init__(self, ldap_connection, attributes=None,
-                 filterstr='(objectClass=*)', start_tls='',
-                 bind_dn='', bind_pass='', name=None, flatten=False):
+    def __init__(self,
+                 ldap_connection,
+                 attributes=None,
+                 filterstr='(objectClass=*)',
+                 start_tls='',
+                 bind_dn='',
+                 bind_pass='',
+                 name=None,
+                 flatten=False):
         """
         Fetch LDAP attributes of the authenticated user.
 
@@ -350,11 +371,12 @@ class LDAPAttributesPlugin(object):
         """
         if hasattr(attributes, 'split'):
             conv = {}
-            for item in map(lambda v: v.split('='), attributes.split(',')):
+            for item in attributes.split(','):
+                item = item.split('=')
                 if len(item) == 1:
                     key = value = item[0].strip()
                 else:
-                    key, value = map(lambda v: v.strip(), item)
+                    key, value = [item[0].strip(), item[1].strip()]
                 conv[key] = value
             attributes = conv
 
@@ -428,10 +450,14 @@ class LDAPGroupsPlugin(object):
 
     dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
 
-    def __init__(self, ldap_connection,
-                 filterstr='', start_tls='',
+    def __init__(self,
+                 ldap_connection,
+                 filterstr='',
+                 start_tls='',
                  base_dn=None,
-                 bind_dn='', bind_pass='', name=None,
+                 bind_dn='',
+                 bind_pass='',
+                 name=None,
                  search_scope='subtree',
                  naming_attribute='cn'):
         """

@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 #
 # repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
-# Copyright (C) 2010 by Gustavo Narea  <http://gustavonarea.net/> and
-#                       Lorenzo M. Catucci <http://www.uniroma2.it/>.
-# Copyright (C) 2008 by Gustavo Narea <http://gustavonarea.net/>.s
+# Copyright (C) 2010-2014 by contributors <see CONTRIBUTORS file>
 #
 # This file is part of repoze.who.plugins.ldap
-# <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
+# <https://bitbucket.org/marcomartinez/repoze.who.plugins.ldap>
 #
 # This software is subject to the provisions of the BSD-like license at
 # http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
-# this distribution.  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL
+# this distribution.  THIS SOFTWARE IS PROVIDED 'AS IS' AND ANY AND ALL
 # EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
 # THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
 # FITNESS FOR A PARTICULAR PURPOSE.
-"""Test suite for repoze.who.plugins.ldap"""
+"""
+Test suite for repoze.who.plugins.ldap
+"""
 
 import unittest
 
@@ -35,7 +35,7 @@ from base64 import b64encode
 
 class Base(unittest.TestCase):
     """Base test case for the plugins"""
-    
+
     def setUp(self):
         # Connecting to a fake server with a fake account:
         conn = fakeldap.FakeLDAPConnection()
@@ -52,15 +52,15 @@ class Base(unittest.TestCase):
         self.connection = conn
         # Creating a fake environment:
         self.env  = self._makeEnviron()
-    
+
     def tearDown(self):
         self.connection.delete_s(fakeuser['dn'])
-    
+
     def _makeEnviron(self, kw=None):
         """Create a fake WSGI environment
-        
+
         This is based on the same method of the test suite of repoze.who.
-        
+
         """
         environ = {}
         environ['wsgi.version'] = (1,0)
@@ -74,27 +74,27 @@ class Base(unittest.TestCase):
 
 class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
     """Tests for the constructor of the L{LDAPAuthenticatorPlugin} plugin"""
-    
+
     def test_without_connection(self):
         self.assertRaises(ValueError, LDAPAuthenticatorPlugin, None,
                           'dc=example,dc=org')
-    
+
     def test_without_base_dn(self):
         conn = fakeldap.FakeLDAPConnection()
         self.assertRaises(TypeError, LDAPAuthenticatorPlugin, conn)
         self.assertRaises(ValueError, LDAPAuthenticatorPlugin, conn, None)
-    
+
     def test_with_connection(self):
         conn = fakeldap.FakeLDAPConnection()
         LDAPAuthenticatorPlugin(conn, 'dc=example,dc=org')
-    
+
     def test_connection_is_url(self):
         LDAPAuthenticatorPlugin('ldap://example.org', 'dc=example,dc=org')
 
 
 class TestLDAPAuthenticatorPlugin(Base):
     """Tests for the L{LDAPAuthenticatorPlugin} IAuthenticator plugin"""
-    
+
     def setUp(self):
         super(TestLDAPAuthenticatorPlugin, self).setUp()
         # Loading the plugin:
@@ -132,7 +132,7 @@ class TestLDAPAuthenticatorPlugin(Base):
                     'password': fakeuser['password']}
         result = self.plugin.authenticate(self.env, identity)
         self.assertEqual(result, fakeuser['dn'])
-    
+
     def test_custom_authenticator(self):
         """L{LDAPAuthenticatorPlugin._get_dn} should be overriden with no
         problems"""
@@ -146,7 +146,7 @@ class TestLDAPAuthenticatorPlugin(Base):
 
 class TestLDAPSearchAuthenticatorPluginNaming(Base):
     """Tests for the L{LDAPSearchAuthenticatorPlugin} IAuthenticator plugin"""
-    
+
     def setUp(self):
         super(TestLDAPSearchAuthenticatorPluginNaming, self).setUp()
         # Loading the plugin:
@@ -173,14 +173,14 @@ class TestLDAPSearchAuthenticatorPluginNaming(Base):
                     'password': fakeuser['password']}
         result = self.plugin.authenticate(self.env, identity)
         self.assertEqual(result, fakeuser['dn'])
-    
+
 class TestLDAPAuthenticatorReturnLogin(Base):
     """
     Tests the L{LDAPAuthenticatorPlugin} IAuthenticator plugin returning
     login.
-    
+
     """
-    
+
     def setUp(self):
         super(TestLDAPAuthenticatorReturnLogin, self).setUp()
         # Loading the plugin:
@@ -214,15 +214,15 @@ class TestLDAPAuthenticatorReturnLogin(Base):
         expected_dn = '<dn:%s>' % b64encode(fakeuser['dn'])
         result = self.plugin.authenticate(self.env, identity)
         self.assertEqual(identity['userdata'], expected_dn)
-        
-    
+
+
 class TestLDAPSearchAuthenticatorReturnLogin(Base):
     """
     Tests the L{LDAPSearchAuthenticatorPlugin} IAuthenticator plugin returning
     login.
-    
+
     """
-    
+
     def setUp(self):
         super(TestLDAPSearchAuthenticatorReturnLogin, self).setUp()
         # Loading the plugin:
@@ -256,11 +256,11 @@ class TestLDAPSearchAuthenticatorReturnLogin(Base):
         expected_dn = '<dn:%s>' % b64encode(fakeuser['dn'])
         result = self.plugin.authenticate(self.env, identity)
         self.assertEqual(identity['userdata'], expected_dn)
-        
-    
+
+
 class TestLDAPAuthenticatorPluginStartTls(Base):
     """Tests for the L{LDAPAuthenticatorPlugin} IAuthenticator plugin"""
-    
+
     def setUp(self):
         super(TestLDAPAuthenticatorPluginStartTls, self).setUp()
         # Loading the plugin:
@@ -273,25 +273,25 @@ class TestLDAPAuthenticatorPluginStartTls(Base):
 
 class TestMakeLDAPAttributesPlugin(unittest.TestCase):
     """Tests for the constructor of L{LDAPAttributesPlugin}"""
-    
+
     def test_connection_is_invalid(self):
         self.assertRaises(ValueError, LDAPAttributesPlugin, None, 'cn')
-    
+
     def test_attributes_is_none(self):
         """If attributes is None then fetch all the attributes"""
         plugin = LDAPAttributesPlugin('ldap://localhost', None)
         self.assertEqual(plugin.attributes, None)
-    
+
     def test_attributes_is_comma_separated_str(self):
         attributes = "cn,uid,mail"
         plugin = LDAPAttributesPlugin('ldap://localhost', attributes)
         self.assertEqual(plugin.attributes, attributes.split(','))
-    
+
     def test_attributes_is_only_one_as_str(self):
         attributes = "mail"
         plugin = LDAPAttributesPlugin('ldap://localhost', attributes)
         self.assertEqual(plugin.attributes, ['mail'])
-    
+
     def test_attributes_is_iterable(self):
         # The plugin, with a tuple as attributes
         attributes_t = ('cn', 'mail')
@@ -305,11 +305,11 @@ class TestMakeLDAPAttributesPlugin(unittest.TestCase):
         attributes_d = {'first': 'cn', 'second': 'mail'}
         plugin_d = LDAPAttributesPlugin('ldap://localhost', attributes_d)
         self.assertEqual(plugin_d.attributes, list(attributes_d))
-    
+
     def test_attributes_is_not_iterable_nor_string(self):
         self.assertRaises(ValueError, LDAPAttributesPlugin, 'ldap://localhost',
                           12345)
-    
+
     def test_parameters_are_valid(self):
         LDAPAttributesPlugin('ldap://localhost', 'cn', '(objectClass=*)')
 
@@ -340,19 +340,19 @@ class TestLDAPAttributesPlugin(Base):
 
 class TestLDAPConnectionFactory(unittest.TestCase):
     """Tests for L{make_ldap_connection}"""
-    
+
     def test_connection_is_object(self):
         conn = fakeldap.FakeLDAPConnection()
         self.assertEqual(make_ldap_connection(conn), conn)
-    
+
     def test_connection_is_str(self):
         conn = make_ldap_connection('ldap://example.org')
         self.assertTrue(isinstance(conn, SimpleLDAPObject))
-    
+
     def test_connection_is_unicode(self):
         conn = make_ldap_connection(u'ldap://example.org')
         self.assertTrue(isinstance(conn, SimpleLDAPObject))
-    
+
     def test_connection_is_none(self):
         self.assertRaises(ValueError, make_ldap_connection, None)
 
@@ -361,7 +361,7 @@ class TestLDAPConnectionFactory(unittest.TestCase):
 
 class TestLDAPConnection(unittest.TestCase):
     """Connection use tests"""
-    
+
     def setUp(self):
         # Connecting to a fake server with a fake account:
         conn = fakeldap.FakeLDAPConnection()
@@ -428,7 +428,7 @@ class TestLDAPConnection(unittest.TestCase):
 #{ Fixtures
 
 base_dn = 'ou=people,dc=example,dc=org'
-    
+
 fakeuser = {
     'dn': 'uid=carla,%s' % base_dn,
     'uid': 'carla',
@@ -443,7 +443,7 @@ fakeuser = {
 class CustomLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
     """Fake class to test that L{LDAPAuthenticatorPlugin._get_dn} can be
     overriden with no problems"""
-    
+
     def _get_dn(self, environ, identity):
         self.called = True
         try:
@@ -459,10 +459,10 @@ class CustomLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
 def suite():
     """
     Return the test suite.
-    
+
     @return: The test suite for the plugin.
     @rtype: C{unittest.TestSuite}
-    
+
     """
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestLDAPConnection, "test"))
