@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 #
 # repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
-# Copyright (C) 2008-2010 by Gustavo Narea <http://gustavonarea.net/>
+# Copyright (C) 2010-2014 by contributors <see CONTRIBUTORS file>
 #
 # This file is part of repoze.who.plugins.ldap
-# <http://code.gustavonarea.net/repoze.who.plugins.ldap/>
+# <https://bitbucket.org/marcomartinez/repoze.who.plugins.ldap>
 #
 # This software is subject to the provisions of the BSD-like license at
 # http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
-# this distribution.  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL
+# this distribution.  THIS SOFTWARE IS PROVIDED 'AS IS' AND ANY AND ALL
 # EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
 # THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
 # FITNESS FOR A PARTICULAR PURPOSE.

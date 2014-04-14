@@ -1,10 +1,13 @@
-repoze.who.plugins.ldap -- LDAP Authentication for WSGI Applications
+repoze.who.plugins.ldap
+-----------------------
+
+LDAP Authentication for WSGI Applications
 
 repoze.who.plugins.ldap is an LDAP plugin for the identification and
 authentication framework for WSGI applications, repoze.who, which acts as WSGI
 middleware.
 
-It provides you with an straightforward solution to enable LDAP support in your 
+It provides you with an straightforward solution to enable LDAP support in your
 applications. Yes, you read well: "straightforward", "LDAP" and
 "applications" are in the same sentence. In fact, you may make your application
 LDAP-aware in few minutes and with few lines of code.
