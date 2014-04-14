@@ -20,7 +20,7 @@ import sys
 
 
 HERE = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(HERE, 'README')).read()
+README = open(os.path.join(HERE, 'README.rst')).read()
 CHANGELOG = open(os.path.join(HERE, 'docs', 'source', 'Changes.rst')).read()
 
 
