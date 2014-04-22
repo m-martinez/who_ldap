@@ -4,7 +4,7 @@
 # Copyright (C) 2010-2014 by contributors <see CONTRIBUTORS file>
 #
 # This file is part of repoze.who.plugins.ldap
-# <https://bitbucket.org/marcomartinez/repoze.who.plugins.ldap>
+# <https://github.com/m-martinez/repoze.who.plugins.ldap.git>
 #
 # This software is subject to the provisions of the BSD-like license at
 # http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
@@ -29,7 +29,7 @@ REQUIRES = [
     'python3-ldap',
     'setuptools',
     'zope.interface',
-    ]
+]
 
 
 EXTRAS = {
@@ -84,8 +84,8 @@ setup(
     ],
     keywords='ldap web application server wsgi repoze repoze.who',
     author='Gustavo Narea',
-    author_email='me@gustavonarea.net',
-    url='https://bitbucket.org/marcomartinez/repoze.who.plugins.ldap',
+    maintainer='Marco Martinez',
+    url='https://github.com/m-martinez/repoze.who.plugins.ldap.git',
     license='BSD-derived (http://www.repoze.org/LICENSE.txt)',
     include_package_data=True,
     package_dir={'': 'src'},
@@ -96,4 +96,4 @@ setup(
     extras_require=EXTRAS,
     tests_require=EXTRAS['test'],
     test_suite='nose.collector'
-    )
+)

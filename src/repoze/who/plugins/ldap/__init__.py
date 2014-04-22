@@ -4,7 +4,7 @@
 # Copyright (C) 2010-2014 by contributors <see CONTRIBUTORS file>
 #
 # This file is part of repoze.who.plugins.ldap
-# <https://bitbucket.org/marcomartinez/repoze.who.plugins.ldap>
+# <https://github.com/m-martinez/repoze.who.plugins.ldap.git>
 #
 # This software is subject to the provisions of the BSD-like license at
 # http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
