@@ -20,10 +20,7 @@ __all__ = ['LDAPBaseAuthenticatorPlugin', 'LDAPAuthenticatorPlugin',
            'LDAPSearchAuthenticatorPlugin', 'LDAPAttributesPlugin']
 
 from base64 import b64encode, b64decode
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 import re
 
 import ldap3
@@ -80,7 +77,8 @@ class LDAPBaseAuthenticatorPlugin(object):
         if base_dn is None:
             raise ValueError('A base Distinguished Name must be specified')
 
-        self.server = create_server(ldap_connection, start_tls)
+        self.server = create_server(ldap_connection)
+        self.start_tls = start_tls
 
         self.bind_dn = bind_dn
         self.bind_pass = bind_pass
@@ -120,20 +118,25 @@ class LDAPBaseAuthenticatorPlugin(object):
         try:
             dn = self._get_dn(environ, identity)
             password = identity['password']
-        except (KeyError, TypeError, ValueError):
+        except (KeyError, TypeError, ValueError) as e:  # NOQA
             return None
 
         try:
-            ldap3.Connection(self.server, dn, password, auto_bind=True).close()
-            userdata = identity.get('userdata', '')
-            # The credentials are valid!
-            if self.ret_style == 'd':
-                return dn
-            else:
-                identity['userdata'] = userdata + '<dn:%s>' % b64encode(dn)
-                return identity['login']
+            conn = ldap3.Connection(self.server, dn, password, auto_bind=True)
+            if self.start_tls:
+                conn.start_tls()
+            conn.close()
         except:
             return None
+
+        userdata = identity.get('userdata', '')
+        # The credentials are valid!
+        if self.ret_style == 'd':
+            return dn
+        else:
+            encoded = b64encode(dn.encode('utf-8'))
+            identity['userdata'] = userdata + '<dn:%s>' % encoded
+            return identity['login']
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, id(self))
@@ -202,10 +205,6 @@ class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
         @raise ValueError: If the C{login} key is not in the I{identity} dict.
 
         """
-        if self.bind_dn:
-            conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
-                                    auto_bind=True)
-            conn.close()
         try:
             return self.naming_pattern % (identity['login'], self.base_dn)
         except (KeyError, TypeError):
@@ -219,7 +218,7 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
                  ldap_connection,
                  base_dn,
                  naming_attribute='uid',
-                 search_scope='SEARCH_SCOPE_WHOLE_SUBTREE',
+                 search_scope='subtree',
                  restrict='',
                  **kwargs):
         """Create an LDAP authentication plugin determining the DN via LDAP
@@ -307,7 +306,10 @@ class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
             conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
                                     auto_bind=True)
         else:
-            conn = ldap3.Connection(self.server)
+            conn = ldap3.Connection(self.server, auto_bind=True)
+
+        if self.start_tls:
+            conn.start_tls()
 
         login_name = identity['login'].replace('*', r'\*')
         srch = self.search_pattern % login_name
@@ -378,23 +380,30 @@ class LDAPAttributesPlugin(object):
                 else:
                     key, value = [item[0].strip(), item[1].strip()]
                 conv[key] = value
-            attributes = conv
+            attributes_map = conv
+            attributes = list(conv.keys())
 
         elif hasattr(attributes, '__iter__'):
-            attributes = dict((v, v) for v in attributes)
+            attributes_map = dict((v, v) for v in attributes)
 
         elif hasattr(attributes, 'items'):
-            pass
+            attributes_map = attributes
+            attributes = list(attributes.keys())
 
         elif attributes is not None:
             raise ValueError('The needed LDAP attributes are not valid')
 
-        self.server = create_server(ldap_connection, start_tls)
+        else:
+            attributes = attributes_map = None
+
+        self.server = create_server(ldap_connection)
+        self.start_tls = start_tls
 
         self.name = name
         self.bind_dn = bind_dn
         self.bind_pass = bind_pass
         self.attributes = attributes
+        self._attributes_map = attributes_map
         self.filterstr = filterstr
         self.flatten = str(flatten)[0].lower() == 't'
 
@@ -419,14 +428,17 @@ class LDAPAttributesPlugin(object):
             conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
                                     auto_bind=True)
         else:
-            conn = ldap3.Connection(self.server)
+            conn = ldap3.Connection(self.server, auto_bind=True)
+
+        if self.start_tls:
+            conn.start_tls()
 
         status = conn.search(dn,
                              self.filterstr,
                              ldap3.SEARCH_SCOPE_BASE_OBJECT,
                              attributes=(ldap3.ALL_ATTRIBUTES
                                          if self.attributes is None
-                                         else self.attributes.keys()))
+                                         else self.attributes))
 
         if not status:
             raise Exception('Cannot add metadata for %s: %s'
@@ -438,7 +450,7 @@ class LDAPAttributesPlugin(object):
             if self.flatten:
                 v = v[0]
             if self.attributes:
-                k = self.attributes[k]
+                k = self._attributes_map[k]
             result[k] = v
 
         identity.update(result if not self.name else {self.name: result})
@@ -492,7 +504,8 @@ class LDAPGroupsPlugin(object):
         if base_dn is None:
             raise ValueError('A base Distinguished Name must be specified')
 
-        self.server = create_server(ldap_connection, start_tls)
+        self.server = create_server(ldap_connection)
+        self.start_tls = start_tls
 
         if search_scope[:3].lower() == 'sub':
             self.search_scope = ldap3.SEARCH_SCOPE_WHOLE_SUBTREE
@@ -533,6 +546,9 @@ class LDAPGroupsPlugin(object):
         else:
             conn = ldap3.Connection(self.server)
 
+        if self.start_tls:
+            conn.start_tls()
+
         status = conn.search(self.base_dn,
                              self.filterstr % {'dn': dn},
                              self.search_scope,
@@ -548,27 +564,24 @@ class LDAPGroupsPlugin(object):
         identity[self.name] = groups
 
 
-def create_server(uri, start_tls=False):
+def create_server(uri):
     """
     Creates a LDAP server for use with client connections.
 
     @param uri: The ldap server URL
     @type uri: C{str}
-    @param start_tls: Start TLS? (default: False)
-    @type start_tls: C{bool}
 
     @return: The LDAP server
     @rtype: C{ldap3.Server}
 
     """
-
-    uri = urlparse(uri)
+    if uri is None:
+        raise ValueError
+    try:
+        uri = urlparse(uri)
+    except:
+        raise ValueError
     ssl = uri.scheme == 'ldaps'
     port = uri.port or (636 if ssl else 389)
     server = ldap3.Server(uri.hostname, port=port, use_ssl=ssl)
-
-    if start_tls:
-        server.tls = ldap3.Tls()
-        server.startTls()
-
     return server

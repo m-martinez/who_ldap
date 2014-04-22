@@ -25,9 +25,10 @@ CHANGELOG = open(os.path.join(HERE, 'docs', 'source', 'Changes.rst')).read()
 
 
 REQUIRES = [
-    'repoze.who',
-    'python3-ldap',
+    'repoze.who>=2.0',
+    'python3-ldap>=0.9.0',
     'setuptools',
+    'six',
     'zope.interface',
 ]
 
@@ -78,6 +79,8 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python 2.7',
+        'Programming Language :: Python 3.4',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware',
         ('Topic :: System :: Systems Administration :: '
             'Authentication/Directory :: LDAP')
