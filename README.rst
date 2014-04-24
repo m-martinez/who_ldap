@@ -1,7 +1,7 @@
 who_ldap
 -----------------------
 
-LDAP Authentication for repoze.who-enabled WSGI Applications
+LDAP Authentication for repoze.who-v2-enabled WSGI Applications
 
 **This project is a fork of the original repoze.who.plugins.ldap to support
 Python 3 (and 2.7)**
