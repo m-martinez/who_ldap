@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-# repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
+# who_ldap, LDAP authentication for WSGI applications.
 # Copyright (C) 2010-2014 by contributors <see CONTRIBUTORS file>
 #
-# This file is part of repoze.who.plugins.ldap
-# <https://github.com/m-martinez/repoze.who.plugins.ldap.git>
+# This file is part of who_ldap
+# <https://github.com/m-martinez/who_ldap.git>
 #
 # This software is subject to the provisions of the BSD-like license at
 # http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
@@ -20,7 +20,10 @@ __all__ = ['LDAPBaseAuthenticatorPlugin', 'LDAPAuthenticatorPlugin',
            'LDAPSearchAuthenticatorPlugin', 'LDAPAttributesPlugin']
 
 from base64 import b64encode, b64decode
-from six.moves.urllib.parse import urlparse
+try:  # pragma: nocover
+    from urllib.parse import urlparse  # Python 3
+except ImportError:  # pragma: nocover
+    from urlparse import urlparse  # Python 2
 import re
 
 import ldap3

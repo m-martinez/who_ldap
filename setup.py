@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-# repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
+# who_ldap, LDAP authentication for WSGI applications.
 # Copyright (C) 2010-2014 by contributors <see CONTRIBUTORS file>
 #
-# This file is part of repoze.who.plugins.ldap
-# <https://github.com/m-martinez/repoze.who.plugins.ldap.git>
+# This file is part of who_ldap
+# <https://github.com/m-martinez/who_ldap.git>
 #
 # This software is subject to the provisions of the BSD-like license at
 # http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
@@ -28,13 +28,12 @@ REQUIRES = [
     'repoze.who>=2.0',
     'python3-ldap>=0.9.0',
     'setuptools',
-    'six',
     'zope.interface',
 ]
 
 
 EXTRAS = {
-    'test': ['nose', 'mock', 'coverage']
+    'test': ['nose', 'coverage']
 }
 
 
@@ -69,7 +68,7 @@ def get_version():
 
 
 setup(
-    name='repoze.who.plugins.ldap',
+    name='who_ldap',
     version=get_version(),
     description='LDAP plugin for repoze.who',
     long_description='\n\n'.join([README, CHANGELOG]),
@@ -86,14 +85,12 @@ setup(
             'Authentication/Directory :: LDAP')
     ],
     keywords='ldap web application server wsgi repoze repoze.who',
-    author='Gustavo Narea',
-    maintainer='Marco Martinez',
-    url='https://github.com/m-martinez/repoze.who.plugins.ldap.git',
+    author='Marco Martinez',
+    url='https://github.com/m-martinez/who_ldap.git',
     license='BSD-derived (http://www.repoze.org/LICENSE.txt)',
     include_package_data=True,
     package_dir={'': 'src'},
     packages=find_packages('src'),
-    namespace_packages=['repoze', 'repoze.who', 'repoze.who.plugins'],
     zip_safe=False,
     install_requires=REQUIRES,
     extras_require=EXTRAS,

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-# repoze.who.plugins.ldap, LDAP authentication for WSGI applications.
+# who_ldap, LDAP authentication for WSGI applications.
 # Copyright (C) 2010-2014 by contributors <see CONTRIBUTORS file>
 #
-# This file is part of repoze.who.plugins.ldap
-# <https://github.com/m-martinez/repoze.who.plugins.ldap.git>
+# This file is part of who_ldap
+# <https://github.com/m-martinez/who_ldap.git>
 #
 # This software is subject to the provisions of the BSD-like license at
 # http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
@@ -13,7 +13,7 @@
 # THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 """
-Test suite for repoze.who.plugins.ldap
+Test suite for who_ldap
 
 Uses an actual connection, and attempts to create the testing items
 """
@@ -108,17 +108,17 @@ class TestMakeLDAPAuthenticatorPlugin(unittest.TestCase):
     """Tests for the constructor of the L{LDAPAuthenticatorPlugin} plugin"""
 
     def test_without_connection(self):
-        from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+        from who_ldap import LDAPAuthenticatorPlugin
         self.assertRaises(ValueError, LDAPAuthenticatorPlugin, None,
                           'dc=example,dc=org')
 
     def test_without_BASE_DN(self):
-        from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+        from who_ldap import LDAPAuthenticatorPlugin
         self.assertRaises(TypeError, LDAPAuthenticatorPlugin, BIND_URI)
         self.assertRaises(ValueError, LDAPAuthenticatorPlugin, BIND_URI, None)
 
     def test_connection_is_url(self):
-        from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+        from who_ldap import LDAPAuthenticatorPlugin
         LDAPAuthenticatorPlugin('ldap://example.org', 'dc=example,dc=org')
 
 
@@ -126,13 +126,13 @@ class TestLDAPAuthenticatorPlugin(Base):
     """Tests for the L{LDAPAuthenticatorPlugin} IAuthenticator plugin"""
 
     def makePlugin(self):
-        from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+        from who_ldap import LDAPAuthenticatorPlugin
         return LDAPAuthenticatorPlugin(BIND_URI, BASE_DN)
 
     def test_implements(self):
         from zope.interface.verify import verifyClass
         from repoze.who.interfaces import IAuthenticator
-        from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+        from who_ldap import LDAPAuthenticatorPlugin
         verifyClass(IAuthenticator, LDAPAuthenticatorPlugin, tentative=True)
 
     def test_authenticate_nologin(self):
@@ -178,7 +178,7 @@ class TestLDAPAuthenticatorPlugin(Base):
     def test_custom_authenticator(self):
         """L{LDAPAuthenticatorPlugin._get_dn} should be overriden with no
         problems"""
-        from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+        from who_ldap import LDAPAuthenticatorPlugin
 
         class CustomLDAPAuthenticatorPlugin(LDAPAuthenticatorPlugin):
             """Fake class to test that L{LDAPAuthenticatorPlugin._get_dn} can
@@ -206,7 +206,7 @@ class TestLDAPSearchAuthenticatorPluginNaming(Base):
     """Tests for the L{LDAPSearchAuthenticatorPlugin} IAuthenticator plugin"""
 
     def makePlugin(self):
-        from repoze.who.plugins.ldap import LDAPSearchAuthenticatorPlugin
+        from who_ldap import LDAPSearchAuthenticatorPlugin
         return LDAPSearchAuthenticatorPlugin(
             BIND_URI,
             BASE_DN,
@@ -246,7 +246,7 @@ class TestLDAPAuthenticatorReturnLogin(Base):
     """
 
     def makePlugin(self):
-        from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+        from who_ldap import LDAPAuthenticatorPlugin
         return LDAPAuthenticatorPlugin(
             BIND_URI,
             BASE_DN,
@@ -296,7 +296,7 @@ class TestLDAPSearchAuthenticatorReturnLogin(Base):
     """
 
     def makePlugin(self):
-        from repoze.who.plugins.ldap import LDAPSearchAuthenticatorPlugin
+        from who_ldap import LDAPSearchAuthenticatorPlugin
         return LDAPSearchAuthenticatorPlugin(
             BIND_URI,
             BASE_DN,
@@ -344,7 +344,7 @@ class TestLDAPAuthenticatorPluginStartTls(Base):
     def test_implements(self):
         from zope.interface.verify import verifyClass
         from repoze.who.interfaces import IAuthenticator
-        from repoze.who.plugins.ldap import LDAPAuthenticatorPlugin
+        from who_ldap import LDAPAuthenticatorPlugin
         verifyClass(IAuthenticator, LDAPAuthenticatorPlugin, tentative=True)
 
 
@@ -352,29 +352,29 @@ class TestMakeLDAPAttributesPlugin(unittest.TestCase, AssertMixin):
     """Tests for the constructor of L{LDAPAttributesPlugin}"""
 
     def test_connection_is_invalid(self):
-        from repoze.who.plugins.ldap import LDAPAttributesPlugin
+        from who_ldap import LDAPAttributesPlugin
         self.assertRaises(ValueError, LDAPAttributesPlugin, None, 'cn')
 
     def test_attributes_is_none(self):
         """If attributes is None then fetch all the attributes"""
-        from repoze.who.plugins.ldap import LDAPAttributesPlugin
+        from who_ldap import LDAPAttributesPlugin
         plugin = LDAPAttributesPlugin(BIND_URI, None)
         self.assertIsNone(plugin.attributes)
 
     def test_attributes_is_comma_separated_str(self):
-        from repoze.who.plugins.ldap import LDAPAttributesPlugin
+        from who_ldap import LDAPAttributesPlugin
         attributes = "cn,uid,mail"
         plugin = LDAPAttributesPlugin(BIND_URI, attributes)
         self.assertCountEqual(plugin.attributes, attributes.split(','))
 
     def test_attributes_is_only_one_as_str(self):
-        from repoze.who.plugins.ldap import LDAPAttributesPlugin
+        from who_ldap import LDAPAttributesPlugin
         attributes = "mail"
         plugin = LDAPAttributesPlugin(BIND_URI, attributes)
         self.assertEqual(plugin.attributes, ['mail'])
 
     def test_attributes_is_iterable(self):
-        from repoze.who.plugins.ldap import LDAPAttributesPlugin
+        from who_ldap import LDAPAttributesPlugin
         # The plugin, with a tuple as attributes
         attributes_t = ('cn', 'mail')
         plugin_t = LDAPAttributesPlugin(BIND_URI, attributes_t)
@@ -389,12 +389,12 @@ class TestMakeLDAPAttributesPlugin(unittest.TestCase, AssertMixin):
         self.assertCountEqual(plugin_d.attributes, list(attributes_d))
 
     def test_attributes_is_not_iterable_nor_string(self):
-        from repoze.who.plugins.ldap import LDAPAttributesPlugin
+        from who_ldap import LDAPAttributesPlugin
         self.assertRaises(ValueError, LDAPAttributesPlugin, BIND_URI,
                           12345)
 
     def test_parameters_are_valid(self):
-        from repoze.who.plugins.ldap import LDAPAttributesPlugin
+        from who_ldap import LDAPAttributesPlugin
         LDAPAttributesPlugin(BIND_URI, 'cn', '(objectClass=*)')
 
 
@@ -402,13 +402,13 @@ class TestLDAPAttributesPlugin(Base):
     """Tests for the L{LDAPAttributesPlugin} IMetadata plugin"""
 
     def test_implements(self):
-        from repoze.who.plugins.ldap import LDAPAttributesPlugin
+        from who_ldap import LDAPAttributesPlugin
         from zope.interface.verify import verifyClass
         from repoze.who.interfaces import IMetadataProvider
         verifyClass(IMetadataProvider, LDAPAttributesPlugin, tentative=True)
 
     def test_add_metadata(self):
-        from repoze.who.plugins.ldap import LDAPAttributesPlugin
+        from who_ldap import LDAPAttributesPlugin
         plugin = LDAPAttributesPlugin(BIND_URI)
         environ = {}
         identity = {'repoze.who.userid': fakeuser['dn']}
