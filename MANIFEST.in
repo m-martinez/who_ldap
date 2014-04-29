@@ -1,6 +1,8 @@
 include README.rst
+include CHANGES.rst
 include VERSION
 include LICENSE
+include CONTRIBUTORS
 include COPYRIGHT
 include MANIFEST.in
 

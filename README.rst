@@ -34,7 +34,7 @@ Then run the command below::
 
 
 Setting up ``repoze.who`` with the LDAP authenticator
----------------------------------------------------
+-----------------------------------------------------
 
 This section explains how to setup ``repoze.who`` in order to use the LDAP plugins
 in your WSGI application. It is based on `the documentation for repoze.who
@@ -53,7 +53,7 @@ Using the ``repoze.who`` terminology, ``LDAPAuthenticatorPlugin`` is an
 
 
 Configuring ``repoze.who`` in a INI file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can configure your ``repoze.who`` based authentication via a ``*.ini`` file,
 and then load such settings in your application.

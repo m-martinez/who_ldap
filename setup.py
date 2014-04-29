@@ -73,7 +73,6 @@ setup(
     description='LDAP plugin for repoze.who',
     long_description='\n\n'.join([README, CHANGELOG]),
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'Operating System :: OS Independent',
