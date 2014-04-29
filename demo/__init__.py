@@ -1,1 +1,0 @@
-"""Sample repoze.who.plugins.ldap powered web application"""

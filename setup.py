@@ -21,7 +21,7 @@ import sys
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(HERE, 'README.rst')).read()
-CHANGELOG = open(os.path.join(HERE, 'docs', 'source', 'Changes.rst')).read()
+CHANGELOG = open(os.path.join(HERE, 'CHANGES.rst')).read()
 
 
 REQUIRES = [
@@ -78,8 +78,8 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python 2.7',
-        'Programming Language :: Python 3.4',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware',
         ('Topic :: System :: Systems Administration :: '
             'Authentication/Directory :: LDAP')

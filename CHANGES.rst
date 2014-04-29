@@ -1,5 +1,16 @@
-repoze.who.plugins.ldap Changelog
-=================================
+Changelog
+=========
+
+2.0.0 (2014-04-29)
+------------------
+
+ - Forked original project
+ (https://pypi.python.org/pypi/repoze.who.plugins.ldap)
+ - Updated to work with repoze.who v2 API
+ - Python 3.4 compatibility
+ - Allows to aliasing of LDAP properties
+ - Added group metadata provider
+
 
 1.2 Alpha 2 (unreleased)
 ------------------------
