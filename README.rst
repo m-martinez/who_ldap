@@ -163,9 +163,9 @@ like this::
     naming_attribute = uid
     start_tls = True
 
-===============  ======= =======================================================
+================ ======= =======================================================
 Setting          Default Description
-===============  ======= =======================================================
+================ ======= =======================================================
 ldap_connection          **Required** Connection URL
 bind_dn                  Operating user
 bind_pass                Operating user password
@@ -173,7 +173,7 @@ base_dn                  Location to begin queries
 returned_id      dn      Attribute to return on authentication ('dn' or 'login')
 start_tls        False   If set, initiates TLS on the connection
 naming_attribute uid     Naming attribute for directory entries
-===============  ======= =======================================================
+================ ======= =======================================================
 
 
 LDAPSearchAuthenticatorPlugin
