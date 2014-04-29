@@ -5,7 +5,7 @@ Changelog
 ------------------
 
  - Forked original project
- (https://pypi.python.org/pypi/repoze.who.plugins.ldap)
+   (https://pypi.python.org/pypi/repoze.who.plugins.ldap)
  - Updated to work with repoze.who v2 API
  - Python 3.4 compatibility
  - Allows to aliasing of LDAP properties
