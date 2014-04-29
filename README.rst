@@ -171,10 +171,10 @@ Setting              Default Description
 ``bind_dn``                  Operating user
 ``bind_pass``                Operating user password
 ``base_dn``                  Location to begin queries
-``returned_id``       dn     Attribute to return on authentication ('dn' or 'login')
-``start_tls``         False  If set, initiates TLS on the connection
-``naming_attribute``  uid    Naming attribute for directory entries
-===================== ====== ========================================================
+``returned_id``      dn      Attribute to return on authentication ('dn' or 'login')
+``start_tls``        False   If set, initiates TLS on the connection
+``naming_attribute`` uid     Naming attribute for directory entries
+==================== ======= ========================================================
 
 
 
