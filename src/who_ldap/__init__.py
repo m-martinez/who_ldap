@@ -13,11 +13,8 @@
 # THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
 # FITNESS FOR A PARTICULAR PURPOSE.
 """
-LDAP plugins for repoze.who.
+LDAP plugins for repoze.who v2 API
 """
-
-__all__ = ['LDAPBaseAuthenticatorPlugin', 'LDAPAuthenticatorPlugin',
-           'LDAPSearchAuthenticatorPlugin', 'LDAPAttributesPlugin']
 
 from base64 import b64encode, b64decode
 try:  # pragma: nocover
@@ -26,565 +23,361 @@ except ImportError:  # pragma: nocover
     from urlparse import urlparse  # Python 2
 import re
 
-import ldap3
+from ldap3 import (
+    Server,
+    Connection,
+    ALL_ATTRIBUTES,
+    SEARCH_SCOPE_WHOLE_SUBTREE,
+    SEARCH_SCOPE_SINGLE_LEVEL,
+    SEARCH_SCOPE_BASE_OBJECT
+)
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 from zope.interface import implementer
 
 
-class LDAPBaseAuthenticatorPlugin(object):
+RE_USERDATA = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
 
-    def __init__(self,
-                 ldap_connection,
-                 base_dn,
-                 returned_id='dn',
-                 start_tls=False,
-                 bind_dn='',
-                 bind_pass='',
-                 **kwargs):
-        """
-        Create an LDAP authentication plugin.
 
-        By passing an existing LDAPObject, you're free to use the LDAP
-        authentication method you want, the way you want.
+def make_connection(url, bind_dn, bind_pass):
+    """
+    Makes a LDAP Connection
+    """
+    uri = urlparse(url)
+    ssl = uri.scheme == 'ldaps'
+    port = uri.port or (636 if ssl else 389)
+    server = Server(uri.hostname, port=port, use_ssl=ssl)
+    return Connection(server, bind_dn, bind_pass)
 
-        This is an *abstract* class, which means it's useless in itself. You
-        can only use subclasses of this class that implement the L{_get_dn}
-        method (e.g., the built-in authenticators).
 
-        This plugin is compatible with any identifier plugin that defines the
-        C{login} and C{password} items in the I{identity} dictionary.
-
-        @param ldap_connection: An initialized LDAP connection.
-        @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject}
-        @param base_dn: The base for the I{Distinguished Name}. Something like
-            C{ou=employees,dc=example,dc=org}, to which will be prepended the
-            user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
-        @type base_dn: C{unicode}
-        @param returned_id: Should we return the full DN or just the
-            bare naming identifier value on successful authentication?
-        @type returned_id: C{str}, 'dn' or 'login'
-        @attention: While the DN is always unique, if you configure the
-            authenticator plugin to return the bare naming attribute,
-            you have to ensure its uniqueness in the DIT.
-        @param start_tls: Should we negotiate a TLS upgrade on the connection
-            with the directory server?
-        @type start_tls: C{bool}
-        @param bind_dn: Operate as the bind_dn directory entry
-        @type bind_dn: C{str}
-        @param bind_pass: The password for bind_dn directory entry
-        @type bind_pass: C{str}
-
-        @raise ValueError: If at least one of the parameters is not defined.
-
-        """
-        if base_dn is None:
-            raise ValueError('A base Distinguished Name must be specified')
-
-        self.server = create_server(ldap_connection)
-        self.start_tls = start_tls
-
-        self.bind_dn = bind_dn
-        self.bind_pass = bind_pass
-
-        self.base_dn = base_dn
-
-        if returned_id.lower() == 'dn':
-            self.ret_style = 'd'
-        elif returned_id.lower() == 'login':
-            self.ret_style = 'l'
+def parse_map(str):
+    if not str:
+        return None
+    result = {}
+    for item in str.split(','):
+        item = item.split('=')
+        if len(item) == 1:
+            key = value = item[0].strip()
         else:
-            raise ValueError('The return style should be \'dn\' or \'login\'')
+            key, value = [item[0].strip(), item[1].strip()]
+        result[key] = value
+    return result
 
-    def _get_dn(self, environ, identity):
-        """
-        Return the user DN based on the environment and the identity.
 
-        Must be implemented in a subclass
+def extract_userdata(identity):
+    match = RE_USERDATA.search(identity.get('userdata', ''))
+    if not match:
+        return None
+    return b64decode(match.group('b64dn'))
 
-        @param environ: The WSGI environment.
-        @param identity: The identity dictionary.
-        @return: The Distinguished Name (DN)
-        @rtype: C{unicode}
-        @raise ValueError: If the C{login} key is not in the I{identity} dict.
 
-        """
-        raise NotImplementedError
-
-    def authenticate(self, environ, identity):
-        """Return the naming identifier of the user to be authenticated.
-
-        @return: The naming identifier, if the credentials were valid.
-        @rtype: C{unicode} or C{None}
-
-        """
-
-        try:
-            dn = self._get_dn(environ, identity)
-            password = identity['password']
-        except (KeyError, TypeError, ValueError) as e:  # NOQA
-            return None
-
-        try:
-            conn = ldap3.Connection(self.server, dn, password, auto_bind=True)
-            if self.start_tls:
-                conn.start_tls()
-            conn.close()
-        except:
-            return None
-
-        userdata = identity.get('userdata', '')
-        # The credentials are valid!
-        if self.ret_style == 'd':
-            return dn
-        else:
-            encoded = b64encode(dn.encode('utf-8'))
-            identity['userdata'] = userdata + '<dn:%s>' % encoded
-            return identity['login']
-
-    def __repr__(self):
-        return '<%s %s>' % (self.__class__.__name__, id(self))
+def save_userdata(identity, dn):
+    userdata = identity.get('userdata') or ''
+    encoded = '<dn:%s>' % b64encode(dn.encode('utf-8'))
+    identity['userdata'] = userdata + encoded
 
 
 @implementer(IAuthenticator)
-class LDAPAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
+class LDAPAuthenticatorPlugin(object):
+    """
+    Authenticates directly as the user's DN
+    """
 
     def __init__(self,
-                 ldap_connection,
+                 url,
                  base_dn,
-                 naming_attribute='uid',
-                 **kwargs):
+                 start_tls=False,
+                 returned_id='dn',
+                 naming_attribute='uid'
+                 ):
         """
-        Create an LDAP authentication plugin using pattern-determined DNs
-
-        By passing an existing LDAPObject, you're free to use the LDAP
-        authentication method you want, the way you want.
-
-        This plugin is compatible with any identifier plugin that defines the
-        C{login} and C{password} items in the I{identity} dictionary.
-
-        @param ldap_connection: An initialized LDAP connection.
-        @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject}
-        @param base_dn: The base for the I{Distinguished Name}. Something like
-            C{ou=employees,dc=example,dc=org}, to which will be prepended the
-            user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
-        @type base_dn: C{unicode}
-        @param naming_attribute: The naming attribute for directory entries,
-            C{uid} by default.
-        @type naming_attribute: C{unicode}
-
-        @raise ValueError: If at least one of the parameters is not defined.
-
-        The following parameters are inherited from
-        L{LDAPBaseAuthenticatorPlugin.__init__}
-        @param base_dn: The base for the I{Distinguished Name}. Something like
-            C{ou=employees,dc=example,dc=org}, to which will be prepended the
-            user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
-        @param returned_id: Should we return full Directory Names or just the
-            bare naming identifier on successful authentication?
-        @param start_tls: Should we negotiate a TLS upgrade on the connection
-            with the directory server?
-        @param bind_dn: Operate as the bind_dn directory entry
-        @param bind_pass: The password for bind_dn directory entry
-
-
+        Parameters:
+        url -- LDAP URL
+        base_dn -- Base node to search
+        start_tls -- Flag to initiate TLS upgrade on connection
+        returned_id -- id to return on success ('dn' or 'login')
+        naming_attribute -- naming attribute for directory entries
         """
-        super(LDAPAuthenticatorPlugin, self).__init__(
-            ldap_connection, base_dn, **kwargs)
+        returned_id = returned_id or 'dn'
+        naming_attribute = naming_attribute or 'uid'
+
+        assert url, u'Connection URL is required'
+        assert base_dn, u'Base DN is required'
+        assert returned_id.lower() in ('dn', 'login'), \
+            u'The return style should be \'dn\' or \'login\''
+
+        self.url = url
+        self.base_dn = base_dn
+        self.start_tls = bool(start_tls)
+        self.ret_style = 'd' if returned_id.lower() == 'dn' else 'l'
         self.naming_pattern = u'%s=%%s,%%s' % naming_attribute
 
-    def _get_dn(self, environ, identity):
-        """
-        Return the user naming identifier based on the environment and the
-        identity.
-
-        If the C{login} item of the identity is C{rms} and the base DN is
-        C{ou=developers,dc=gnu,dc=org}, the resulting DN will be:
-        C{uid=rms,ou=developers,dc=gnu,dc=org}
-
-        @param environ: The WSGI environment.
-        @param identity: The identity dictionary.
-        @return: The Distinguished Name (DN)
-        @rtype: C{unicode}
-        @raise ValueError: If the C{login} key is not in the I{identity} dict.
-
-        """
-        try:
-            return self.naming_pattern % (identity['login'], self.base_dn)
-        except (KeyError, TypeError):
-            raise ValueError
+    # IAuthenticator
+    def authenticate(self, environ, identity):
+        if 'login' not in identity:
+            return None
+        dn = self.naming_pattern % (identity['login'], self.base_dn)
+        with make_connection(self.url, dn, identity['password']) as conn:
+            if self.start_tls:
+                conn.start_tls()
+            if not conn.bind():
+                return None
+            save_userdata(identity, dn)
+            return dn if self.ret_style == 'd' else identity['login']
 
 
 @implementer(IAuthenticator)
-class LDAPSearchAuthenticatorPlugin(LDAPBaseAuthenticatorPlugin):
+class LDAPSearchAuthenticatorPlugin(object):
+    """
+    Authenticates the user by performing a search from a base DN
+    """
 
     def __init__(self,
-                 ldap_connection,
+                 url,
                  base_dn,
+                 bind_dn='',
+                 bind_pass='',
+                 start_tls=False,
+                 returned_id='dn',
                  naming_attribute='uid',
                  search_scope='subtree',
-                 restrict='',
-                 **kwargs):
-        """Create an LDAP authentication plugin determining the DN via LDAP
-        searches.
-
-        By passing an existing LDAPObject, you're free to use the LDAP
-        authentication method you want, the way you want.
-
-        This plugin is compatible with any identifier plugin that defines the
-        C{login} and C{password} items in the I{identity} dictionary.
-
-        @param ldap_connection: An initialized LDAP connection.
-        @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject}
-        @param base_dn: The base for the I{Distinguished Name}. Something like
-            C{ou=employees,dc=example,dc=org}, to which will be prepended the
-            user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
-        @type base_dn: C{unicode}
-        @param naming_attribute: The naming attribute for directory entries,
-            C{uid} by default.
-        @type naming_attribute: C{unicode}
-        @param search_scope: Scope for ldap searches
-        @type search_scope: C{str}, 'subtree' or 'onelevel', possibly
-            abbreviated to at least the first three characters
-        @param restrict: An ldap filter which will be ANDed to the search
-            filter while searching for entries matching the naming attribute
-        @type restrict: C{unicode}
-        @attention: restrict will be interpolated into the search string as a
-            bare string like in "(&%s(identifier=login))". It must be correctly
-            parenthesised for such usage as in restrict = "(objectClass=*)".
-
-        @raise ValueError: If at least one of the parameters is not defined.
-
-        The following parameters are inherited from
-        L{LDAPBaseAuthenticatorPlugin.__init__}
-        @param base_dn: The base for the I{Distinguished Name}. Something like
-            C{ou=employees,dc=example,dc=org}, to which will be prepended the
-            user id: C{uid=jsmith,ou=employees,dc=example,dc=org}.
-        @param returned_id: Should we return full Directory Names or just the
-            bare naming identifier on successful authentication?
-        @param start_tls: Should we negotiate a TLS upgrade on the connection
-            with the directory server?
-        @param bind_dn: Operate as the bind_dn directory entry
-        @param bind_pass: The password for bind_dn directory entry
-
+                 restrict=''
+                 ):
         """
-        super(LDAPSearchAuthenticatorPlugin, self).__init__(
-            ldap_connection, base_dn, **kwargs)
+        Parameters:
+        url -- LDAP URL
+        base_dn -- Base node to search
+        bind_dn -- User for querying the LDAP database
+        bind_pass -- User password
+        start_tls -- Flag to initiate TLS upgrade on connection
+        returned_id -- id to return on success ('dn' or 'login')
+        naming_attribute -- naming attribute for directory entries
+        search_scope -- Scope of search ('onelevel' or 'subtree')
+        restrict -- Additional search criterion ANDed to search string.
+        """
+        returned_id = returned_id or 'dn'
+        naming_attribute = naming_attribute or 'uid'
+        search_scope = search_scope or 'subtree'
 
-        if search_scope[:3].lower() == 'sub':
-            self.search_scope = ldap3.SEARCH_SCOPE_WHOLE_SUBTREE
-        elif search_scope[:3].lower() == 'one':
-            self.search_scope = ldap3.SEARCH_SCOPE_SINGLE_LEVEL
-        else:
-            raise ValueError(
-                'The search scope should be \'one[level]\' or \'sub[tree]\')')
+        assert url, u'Connection URL is required'
+        assert base_dn, u'Base DN is required'
+        assert bind_dn, u'Bind DN is required'
+        assert bind_pass, u'Bind DN is required'
+        assert returned_id.lower() in ('dn', 'login'), \
+            u'The return style should be \'dn\' or \'login\''
+        assert search_scope.lower()[:3] in ('one', 'sub'), \
+            u'The search scope should be \'one[level]\' or \'sub[tree]\')'
 
+        self.url = url
+        self.base_dn = base_dn
+        self.bind_dn = bind_dn
+        self.bind_pass = bind_pass
+        self.start_tls = bool(start_tls)
+        self.ret_style = 'd' if returned_id.lower() == 'dn' else 'l'
+        self.naming_pattern = u'%s=%%s,%%s' % naming_attribute
+        self.search_scope = \
+            SEARCH_SCOPE_WHOLE_SUBTREE \
+            if search_scope.lower().startswith('sub') \
+            else SEARCH_SCOPE_SINGLE_LEVEL
         if restrict:
             self.search_pattern = u'(&%s(%s=%%s))' % (
                 restrict, naming_attribute)
         else:
             self.search_pattern = u'(%s=%%s)' % naming_attribute
 
-    def _get_dn(self, environ, identity):
-        """
-        Return the DN based on the environment and the identity.
+    # IAuthenticator
+    def authenticate(self, environ, identity):
+        if 'login' not in identity:
+            return None
 
-        Searches the directory entry with naming attribute matching the
-        C{login} item of the identity.
+        with make_connection(self.url, self.bind_dn, self.bind_pass) as conn:
+            if self.start_tls:
+                conn.start_tls()
 
-        If the C{login} item of the identity is C{rms}, the naming attribute is
-        C{uid} and the base DN is C{dc=gnu,dc=org}, we'll ask the server
-        to search for C{uid = rms} beneath the search base, hopefully
-        finding C{uid=rms,ou=developers,dc=gnu,dc=org}.
+            if not conn.bind():
+                raise ValueError('Cannot establish connection')
 
-        @param environ: The WSGI environment.
-        @param identity: The identity dictionary.
+            search = \
+                self.search_pattern % identity['login'].replace('*', r'\*')
+            conn.search(self.base_dn, search, self.search_scope)
 
-        @return: The Distinguished Name (DN)
-        @rtype: C{unicode}
+            if len(conn.response) > 1:
+                raise ValueError('Too many entries found for %s' % search)
+            if len(conn.response) < 1:
+                raise ValueError('No entry found for %s' % search)
 
-        @raise ValueError: If the C{login} key is not in the I{identity} dict.
+            dn = conn.response[0]['dn']
 
-        """
-        if self.bind_dn:
-            conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
-                                    auto_bind=True)
-        else:
-            conn = ldap3.Connection(self.server, auto_bind=True)
-
-        if self.start_tls:
-            conn.start_tls()
-
-        login_name = identity['login'].replace('*', r'\*')
-        srch = self.search_pattern % login_name
-        conn.search(self.base_dn, srch, self.search_scope)
-        dn_list = conn.response
-        conn.close()
-        if len(dn_list) == 1:
-            return dn_list[0]['dn']
-        elif len(dn_list) > 1:
-            raise ValueError('Too many entries found for %s' % srch)
-        else:
-            raise ValueError('No entry found for %s' % srch)
+            with make_connection(self.url, dn, identity['password']) as check:
+                if not check.bind():
+                    return None
+                save_userdata(identity, dn)
+                return dn if self.ret_style == 'd' else identity['login']
 
 
 @implementer(IMetadataProvider)
 class LDAPAttributesPlugin(object):
-    """Loads LDAP attributes of the authenticated user."""
+    """
+    Loads LDAP attributes of the authenticated user.
+    """
 
     dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
 
     def __init__(self,
-                 ldap_connection,
-                 attributes=None,
-                 filterstr='(objectClass=*)',
-                 start_tls='',
+                 url,
                  bind_dn='',
                  bind_pass='',
+                 start_tls=False,
+                 filterstr='(objectClass=*)',
                  name=None,
+                 attributes=None,
                  flatten=False):
         """
-        Fetch LDAP attributes of the authenticated user.
-
-        @param ldap_connection: The LDAP connection to use to fetch this data.
-        @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject} or C{str}
-        @param attributes: The authenticated user's LDAP attributes you want to
-            use in your application; an interable or a comma-separate list of
-            attributes in a string, or C{None} to fetch them all. You may also
-            specify key=value pairs if you wish to map the attributes to
-            something the target system will understand.
-        @type attributes: C{iterable} or C{str}
-        @param flatten: Enables flattening of LDAP results
-            (all values are lists by default)
-        @type flatten: C{bool}
-        @param filterstr: A filter for the search, as documented in U{RFC4515
-            <http://www.faqs.org/rfcs/rfc4515.html>}; the results won't be
-            filtered unless you define this.
-        @type filterstr: C{str}
-        @param start_tls: Should we negotiate a TLS upgrade on the connection
-            with the directory server?
-        @type start_tls: C{str}
-        @param bind_dn: Operate as the bind_dn directory entry
-        @type bind_dn: C{str}
-        @param bind_pass: The password for bind_dn directory entry
-        @type bind_pass: C{str}
-        @param name: The property name in the identity to use
-        @type name: C{str}
-
-        @raise ValueError: If L{make_ldap_connection} could not create a
-            connection from C{ldap_connection}, or if C{attributes} is not an
-            iterable.
+        Parameters:
+        url -- LDAP URL
+        bind_dn -- User for querying the LDAP database
+        bind_pass -- User password
+        start_tls -- Flag to initiate TLS upgrade on connection
+        filterstr -- Filter for the search.
+                     See http://www.faqs.org/rfcs/rfc4515.html
+                     Results won't be filtered unless you specify this.
+        name -- property name in the identity to populate. If not specified,
+                will specify the identity itself.
+        attributes -- attributes to use. Can be a comma-delimted list
+                      of `name` or `name=alias` pairs (which will remap
+                      attribute names to the desired alias)
+        flatten -- If values contain a single item,
+                   they will be converted to a scalar
         """
-        if hasattr(attributes, 'split'):
-            conv = {}
-            for item in attributes.split(','):
-                item = item.split('=')
-                if len(item) == 1:
-                    key = value = item[0].strip()
-                else:
-                    key, value = [item[0].strip(), item[1].strip()]
-                conv[key] = value
-            attributes_map = conv
-            attributes = list(conv.keys())
+        attributes_map = parse_map(attributes)
 
-        elif hasattr(attributes, '__iter__'):
-            attributes_map = dict((v, v) for v in attributes)
+        assert url, u'Connection URL is required'
+        assert bind_dn, u'Bind DN is required'
+        assert bind_pass, u'Bind DN is required'
 
-        elif hasattr(attributes, 'items'):
-            attributes_map = attributes
-            attributes = list(attributes.keys())
-
-        elif attributes is not None:
-            raise ValueError('The needed LDAP attributes are not valid')
-
-        else:
-            attributes = attributes_map = None
-
-        self.server = create_server(ldap_connection)
-        self.start_tls = start_tls
-
-        self.name = name
+        self.url = url
         self.bind_dn = bind_dn
         self.bind_pass = bind_pass
-        self.attributes = attributes
+        self.start_tls = bool(start_tls)
+
+        self.name = name
+        self.attributes = \
+            list(attributes_map.keys()) if attributes_map else None
         self._attributes_map = attributes_map
         self.filterstr = filterstr
         self.flatten = str(flatten)[0].lower() == 't'
 
+    # IMetadataProvider
     def add_metadata(self, environ, identity):
-        """
-        Add metadata about the authenticated user to the identity.
+        with make_connection(self.url, self.bind_dn, self.bind_pass) as conn:
+            if self.start_tls:
+                conn.start_tls()
+            if not conn.bind():
+                raise ValueError('Cannot establish connection')
 
-        It modifies the C{identity} dictionary to add the metadata.
+            dn = extract_userdata(identity)
 
-        @param environ: The WSGI environment.
-        @param identity: The repoze.who's identity dictionary.
+            status = conn.search(dn,
+                                 self.filterstr,
+                                 SEARCH_SCOPE_BASE_OBJECT,
+                                 attributes=(ALL_ATTRIBUTES
+                                             if self.attributes is None
+                                             else self.attributes))
 
-        """
-        # Search arguments:
-        dnmatch = self.dnrx.match(identity.get('userdata', ''))
-        if dnmatch:
-            dn = b64decode(dnmatch.group('b64dn'))
-        else:
-            dn = identity.get('repoze.who.userid')
+            if not status:
+                raise Exception('Cannot add metadata for %s: %s'
+                                % (dn, conn.result))
 
-        if self.bind_dn:
-            conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
-                                    auto_bind=True)
-        else:
-            conn = ldap3.Connection(self.server, auto_bind=True)
+            result = {}
 
-        if self.start_tls:
-            conn.start_tls()
+            for k, v in conn.response[0]['attributes'].items():
+                if self.flatten:
+                    v = v[0]
+                if self.attributes:
+                    k = self._attributes_map[k]
+                result[k] = v
 
-        status = conn.search(dn,
-                             self.filterstr,
-                             ldap3.SEARCH_SCOPE_BASE_OBJECT,
-                             attributes=(ldap3.ALL_ATTRIBUTES
-                                         if self.attributes is None
-                                         else self.attributes))
-
-        if not status:
-            raise Exception('Cannot add metadata for %s: %s'
-                            % (dn, conn.result))
-
-        result = {}
-
-        for k, v in conn.response[0]['attributes'].items():
-            if self.flatten:
-                v = v[0]
-            if self.attributes:
-                k = self._attributes_map[k]
-            result[k] = v
-
-        identity.update(result if not self.name else {self.name: result})
+            identity.update(result if not self.name else {self.name: result})
 
 
 @implementer(IMetadataProvider)
 class LDAPGroupsPlugin(object):
-    """Loads LDAP groups of the authenticated user."""
+    """
+    Add LDAP group memberships of the authenticated user to the identity.
+    """
 
     dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
 
     def __init__(self,
-                 ldap_connection,
-                 filterstr='',
-                 start_tls='',
-                 base_dn=None,
+                 url,
+                 base_dn,
                  bind_dn='',
                  bind_pass='',
+                 start_tls=False,
+                 filterstr='',
                  name=None,
                  search_scope='subtree',
-                 naming_attribute='cn'):
+                 returned_id='cn'):
         """
-        Fetch LDAP attributes of the authenticated user.
+        Parameters:
+        url -- LDAP URL
+        base_dn -- Base node to search
+        bind_dn -- User for querying the LDAP database
+        bind_pass -- User password
+        start_tls -- Flag to initiate TLS upgrade on connection
+        filterstr -- Filter for the search.
+                     See http://www.faqs.org/rfcs/rfc4515.html
+                     Results won't be filtered unless you specify this.
+        name -- property name in the identity to populate. If not specified,
+                will specify the identity itself.
+        search_scope  -- [sub]tree or [one]level of search
+        returned_id -- naming attribute or group directory entries
 
-        @param ldap_connection: The LDAP connection to use to fetch this data.
-        @type ldap_connection: C{ldap.ldapobject.SimpleLDAPObject} or C{str}
-        @param filterstr: A filter for the search, as documented in U{RFC4515
-            <http://www.faqs.org/rfcs/rfc4515.html>}; the results won't be
-            filtered unless you define this.
-        @type filterstr: C{str}
-        @param start_tls: Should we negotiate a TLS upgrade on the connection
-            with the directory server?
-        @type start_tls: C{str}
-        @param bind_dn: Operate as the bind_dn directory entry
-        @type bind_dn: C{str}
-        @param bind_pass: The password for bind_dn directory entry
-        @type bind_pass: C{str}
-        @param name: The property name in the identity to use
-        @type name: C{str}
-        @param search_scope: Scope for ldap searches
-        @type search_scope: C{str}, 'subtree' or 'onelevel', possibly
-            abbreviated to at least the first three characters
-        @param naming_attribute: The naming attribute for directory entries,
-            C{gid} by default.
-        @type naming_attribute: C{unicode}
-
-        @raise ValueError: If L{make_ldap_connection} could not create a
-            connection from C{ldap_connection}, or if C{attributes} is not an
-            iterable.
         """
-        if base_dn is None:
-            raise ValueError('A base Distinguished Name must be specified')
+        returned_id = returned_id or 'cn'
+        search_scope = search_scope or 'subtree'
 
-        self.server = create_server(ldap_connection)
-        self.start_tls = start_tls
+        assert url, u'Connection URL is required'
+        assert base_dn, u'Base DN is required'
+        assert bind_dn, u'Bind DN is required'
+        assert bind_pass, u'Bind DN is required'
+        assert search_scope.lower()[:3] in ('one', 'sub'), \
+            u'The search scope should be \'one[level]\' or \'sub[tree]\')'
 
-        if search_scope[:3].lower() == 'sub':
-            self.search_scope = ldap3.SEARCH_SCOPE_WHOLE_SUBTREE
-        elif search_scope[:3].lower() == 'one':
-            self.search_scope = ldap3.SEARCH_SCOPE_SINGLE_LEVEL
-        else:
-            raise ValueError(
-                'The search scope should be \'one[level]\' or \'sub[tree]\')')
-
-        self.name = name
+        self.url = url
         self.base_dn = base_dn
         self.bind_dn = bind_dn
         self.bind_pass = bind_pass
+        self.start_tls = bool(start_tls)
+        self.search_scope = \
+            SEARCH_SCOPE_WHOLE_SUBTREE \
+            if search_scope.lower().startswith('sub') \
+            else SEARCH_SCOPE_SINGLE_LEVEL
+
+        self.name = name
         self.filterstr = filterstr or (
             '(&(objectClass=groupOfUniqueNames)(uniqueMember=%(dn)s))')
-        self.naming_attribute = naming_attribute
+        self.returned_id = returned_id
 
+    # IMetadataProvider
     def add_metadata(self, environ, identity):
-        """
-        Add LDAP group memberships of the authenticated user to the identity.
+        with make_connection(self.url, self.bind_dn, self.bind_pass) as conn:
+            if self.start_tls:
+                conn.start_tls()
+            if not conn.bind():
+                raise ValueError('Cannot establish connection')
 
-        It modifies the C{identity} dictionary to add the metadata.
+            dn = extract_userdata(identity)
 
-        @param environ: The WSGI environment.
-        @param identity: The repoze.who's identity dictionary.
+            status = conn.search(self.base_dn,
+                                 self.filterstr % {'dn': dn},
+                                 self.search_scope,
+                                 attributes=[self.returned_id])
 
-        """
-        # Search arguments:
-        dnmatch = self.dnrx.match(identity.get('userdata', ''))
-        if dnmatch:
-            dn = b64decode(dnmatch.group('b64dn'))
-        else:
-            dn = identity.get('repoze.who.userid')
+            if not status:
+                raise Exception('Cannot add metadata for %s: %s'
+                                % (dn, conn.result))
 
-        if self.bind_dn:
-            conn = ldap3.Connection(self.server, self.bind_dn, self.bind_pass,
-                                    auto_bind=True)
-        else:
-            conn = ldap3.Connection(self.server)
+            groups = tuple(r['attributes'][self.returned_id][0]
+                           for r in conn.response)
 
-        if self.start_tls:
-            conn.start_tls()
-
-        status = conn.search(self.base_dn,
-                             self.filterstr % {'dn': dn},
-                             self.search_scope,
-                             attributes=[self.naming_attribute])
-
-        if not status:
-            raise Exception('Cannot add metadata for %s: %s'
-                            % (dn, conn.result))
-
-        groups = tuple(r['attributes'][self.naming_attribute][0]
-                       for r in conn.response)
-
-        identity[self.name] = groups
-
-
-def create_server(uri):
-    """
-    Creates a LDAP server for use with client connections.
-
-    @param uri: The ldap server URL
-    @type uri: C{str}
-
-    @return: The LDAP server
-    @rtype: C{ldap3.Server}
-
-    """
-    if uri is None:
-        raise ValueError
-    try:
-        uri = urlparse(uri)
-    except:
-        raise ValueError
-    ssl = uri.scheme == 'ldaps'
-    port = uri.port or (636 if ssl else 389)
-    server = ldap3.Server(uri.hostname, port=port, use_ssl=ssl)
-    return server
+            identity[self.name] = groups
