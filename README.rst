@@ -72,7 +72,7 @@ Say we have a file called ``who.ini`` with the following contents::
 
     [plugin:ldap_auth]
     use = who_ldap:LDAPAuthenticatorPlugin
-    ldap_connection = ldap://ldap.yourcompany.com
+    url = ldap://ldap.yourcompany.com
     base_dn = ou=developers,dc=yourcompany,dc=com
 
     [general]
@@ -158,7 +158,7 @@ like this::
 
     [plugin:ldap_auth]
     use = who_ldap:LDAPAuthenticatorPlugin
-    ldap_connection = ldap://yourcompany.com
+    url = ldap://yourcompany.com
     base_dn = ou=employees,dc=yourcompany,dc=com
     naming_attribute = uid
     start_tls = True
@@ -167,9 +167,7 @@ like this::
 ==================== ======= ========================================================
 Setting              Default Description
 ==================== ======= ========================================================
-``ldap_connection``          **Required** Connection URL
-``bind_dn``                  Operating user
-``bind_pass``                Operating user password
+``url``                      **Required** Connection URL
 ``base_dn``                  Location to begin queries
 ``returned_id``      dn      Attribute to return on authentication ('dn' or 'login')
 ``start_tls``        False   If set, initiates TLS on the connection
@@ -211,7 +209,7 @@ like this::
 
     [plugin:ldap_auth]
     use = who_ldap:LDAPSearchAuthenticatorPlugin
-    ldap_connection = ldap://yourcompany.com
+    url = ldap://yourcompany.com
     base_dn = ou=employees,dc=yourcompany,dc=com
     naming_attribute = uid
     search_scope = subtree
@@ -227,7 +225,7 @@ Finally, add the plugin to the set of authenticators::
 ==================== ======= =======================================================
 Setting              Default Description
 ==================== ======= =======================================================
-``ldap_connection``          **Required** Connection URL
+``url``                      **Required** Connection URL
 ``bind_dn``                  Operating user
 ``bind_pass``                Operating user password
 ``base_dn``                  Location to begin queries
@@ -263,7 +261,7 @@ like this::
 
     [plugin:ldap_attributes]
     use = who_ldap:LDAPAttributesPlugin
-    ldap_connection = ldap://ldap.yourcompany.com
+    url = ldap://ldap.yourcompany.com
     attributes = cn,sn,mail
 
 If instead of loading the *Common Name*, *surname* and *email*, as with the
@@ -280,7 +278,7 @@ Finally, add the plugin to the set of metadata providers::
 =================== =============== =======================================================
 Setting             Default         Description
 =================== =============== =======================================================
-``ldap_connection``                 **Required** Connection URL
+``url``                             **Required** Connection URL
 ``bind_dn``                         Operating user
 ``bind_pass``                       Operating user password
 ``base_dn``                         Location to begin queries
@@ -302,7 +300,7 @@ user.
 ==================== ======= =======================================================
 Setting              Default Description
 ==================== ======= =======================================================
-``ldap_connection``          **Required** Connection URL
+``url``                      **Required** Connection URL
 ``bind_dn``                  Operating user
 ``bind_pass``                Operating user password
 ``base_dn``                  Location to begin queries
@@ -311,5 +309,5 @@ Setting              Default Description
                              (&(objectClass=groupOfUniqueNames)(uniqueMember=%(dn)s)))
 ``name``                     The property name in the identity to use
 ``search_scope``     subtree Scope of LDAP searchs ('subtree' or 'onelevel')
-``naming_attribute`` cn      Naming attribute for directory entries
+``returned_id``      cn      Which attribute value of the group entry to return
 ==================== ======= =======================================================

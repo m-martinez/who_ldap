@@ -1,6 +1,24 @@
 Changelog
 =========
 
+3.0.1 (2014-05-19)
+------------------
+
+- Updated documentation
+
+
+3.0.0 (2014-05-19)
+------------------
+
+- Major code cleanup
+- Deprecated ``LDAPBaseAuthenticatorPlugin``
+-
+- No longer accepts ldap_connection since in order to ensure connections are
+  closed.
+- Allows to aliasing of LDAP properties
+- Switched group ``naming_attribute`` to ``returned_id``
+
+
 2.0.0 (2014-04-29)
 ------------------
 
@@ -19,10 +37,8 @@ Changelog
   <https://bugs.launchpad.net/repoze.who.plugins.ldap/+bug/608622>`_).
 
 
-
 1.1 Alpha 1 (2010-01-03)
 ------------------------
-
 
 - Changed the license to the `Repoze license <http://repoze.org/license.html>`_.
 - Provided ``start_tls`` option both for the authenticator and the metadata
