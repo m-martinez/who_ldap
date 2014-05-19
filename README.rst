@@ -3,7 +3,7 @@ who_ldap
 
 LDAP Authentication for repoze.who-v2-enabled WSGI Applications
 
-**This project is a fork of the original who_ldap to support
+**This project is a fork of the original repoze.who.plugins.ldap to support
 who api v2 as well as Python 3 (and 2.7)**
 
 `who_ldap` an LDAP plugin for the identification and
