@@ -33,6 +33,7 @@ from ldap3 import (
 )
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 from zope.interface import implementer
+import logging
 
 
 RE_USERDATA = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
@@ -186,6 +187,8 @@ class LDAPSearchAuthenticatorPlugin(object):
 
     # IAuthenticator
     def authenticate(self, environ, identity):
+        logger = logging.getLogger('repoze.who')
+
         if 'login' not in identity:
             return None
 
@@ -194,16 +197,19 @@ class LDAPSearchAuthenticatorPlugin(object):
                 conn.start_tls()
 
             if not conn.bind():
-                raise ValueError('Cannot establish connection')
+                logger.error('Cannot establish connection')
+                return None
 
             search = \
                 self.search_pattern % identity['login'].replace('*', r'\*')
             conn.search(self.base_dn, search, self.search_scope)
 
             if len(conn.response) > 1:
-                raise ValueError('Too many entries found for %s' % search)
+                logger.error('Too many entries found for %s' % search)
+                return None
             if len(conn.response) < 1:
-                raise ValueError('No entry found for %s' % search)
+                logger.warn('No entry found for %s' % search)
+                return None
 
             dn = conn.response[0]['dn']
 
@@ -268,11 +274,14 @@ class LDAPAttributesPlugin(object):
 
     # IMetadataProvider
     def add_metadata(self, environ, identity):
+        logger = logging.getLogger('repoze.who')
+
         with make_connection(self.url, self.bind_dn, self.bind_pass) as conn:
             if self.start_tls:
                 conn.start_tls()
             if not conn.bind():
-                raise ValueError('Cannot establish connection')
+                logger.error('Cannot establish connection')
+                return None
 
             dn = extract_userdata(identity)
 
@@ -284,8 +293,9 @@ class LDAPAttributesPlugin(object):
                                              else self.attributes))
 
             if not status:
-                raise Exception('Cannot add metadata for %s: %s'
+                logger.error('Cannot add metadata for %s: %s'
                                 % (dn, conn.result))
+                return None
 
             result = {}
 
@@ -360,11 +370,14 @@ class LDAPGroupsPlugin(object):
 
     # IMetadataProvider
     def add_metadata(self, environ, identity):
+        logger = logging.getLogger('repoze.who')
+        
         with make_connection(self.url, self.bind_dn, self.bind_pass) as conn:
             if self.start_tls:
                 conn.start_tls()
             if not conn.bind():
-                raise ValueError('Cannot establish connection')
+                logger.error('Cannot establish connection')
+                return None
 
             dn = extract_userdata(identity)
 
@@ -374,8 +387,9 @@ class LDAPGroupsPlugin(object):
                                  attributes=[self.returned_id])
 
             if not status:
-                raise Exception('Cannot add metadata for %s: %s'
+                logger.error('Cannot add metadata for %s: %s'
                                 % (dn, conn.result))
+                return None
 
             groups = tuple(r['attributes'][self.returned_id][0]
                            for r in conn.response)
