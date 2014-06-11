@@ -1,6 +1,12 @@
 Changelog
 =========
 
+3.0.2 (2014-06-11)
+------------------
+
+- Issue log messages instead of exceptions for invalid credentials. [lovelle]
+
+
 3.0.1 (2014-05-19)
 ------------------
 
