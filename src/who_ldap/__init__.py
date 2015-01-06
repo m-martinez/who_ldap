@@ -68,12 +68,12 @@ def extract_userdata(identity):
     match = DNRX.search(identity.get('userdata', ''))
     if not match:
         return None
-    return b64decode(match.group('b64dn'))
+    return b64decode(match.group('b64dn')).decode('utf-8')
 
 
 def save_userdata(identity, dn):
     userdata = identity.get('userdata') or ''
-    encoded = '<dn:%s>' % b64encode(dn.encode('utf-8'))
+    encoded = '<dn:%s>' % b64encode(dn.encode('utf-8')).decode('ascii')
     identity['userdata'] = userdata + encoded
 
 
