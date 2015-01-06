@@ -205,10 +205,10 @@ class LDAPSearchAuthenticatorPlugin(object):
             conn.search(self.base_dn, search, self.search_scope)
 
             if len(conn.response) > 1:
-                logger.error('Too many entries found for %s' % search)
+                logger.error('Too many entries found for %s', search)
                 return None
             if len(conn.response) < 1:
-                logger.warn('No entry found for %s' % search)
+                logger.warn('No entry found for %s', search)
                 return None
 
             dn = conn.response[0]['dn']
@@ -297,8 +297,8 @@ class LDAPAttributesPlugin(object):
                                              else self.attributes))
 
             if not status:
-                logger.error('Cannot add user metadata for %s: %s'
-                                % (dn, conn.result))
+                logger.error('Cannot add user metadata for %s: %s',
+                             dn, conn.result)
                 return
 
             result = {}
@@ -394,8 +394,8 @@ class LDAPGroupsPlugin(object):
                                  self.search_scope,
                                  attributes=[self.returned_id])
             if not status:
-                logger.error('Cannot add group metadata for %s: %s'
-                                % (dn, conn.result))
+                logger.error('Cannot add group metadata for %s: %s',
+                             dn, conn.result)
                 return
 
             groups = tuple(r['attributes'][self.returned_id][0]
