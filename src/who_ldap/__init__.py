@@ -50,11 +50,11 @@ def make_connection(url, bind_dn, bind_pass):
     return Connection(server, bind_dn, bind_pass)
 
 
-def parse_map(str):
-    if not str:
+def parse_map(mapstr):
+    if not mapstr:
         return None
     result = {}
-    for item in str.split(','):
+    for item in mapstr.split(','):
         item = item.split('=')
         if len(item) == 1:
             key = value = item[0].strip()
