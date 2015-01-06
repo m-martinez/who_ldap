@@ -281,7 +281,7 @@ class LDAPAttributesPlugin(object):
                 conn.start_tls()
             if not conn.bind():
                 logger.error('Cannot establish connection')
-                return None
+                return
 
             dn = extract_userdata(identity)
 
@@ -295,7 +295,7 @@ class LDAPAttributesPlugin(object):
             if not status:
                 logger.error('Cannot add metadata for %s: %s'
                                 % (dn, conn.result))
-                return None
+                return
 
             result = {}
 
@@ -377,7 +377,7 @@ class LDAPGroupsPlugin(object):
                 conn.start_tls()
             if not conn.bind():
                 logger.error('Cannot establish connection')
-                return None
+                return
 
             dn = extract_userdata(identity)
 
@@ -389,7 +389,7 @@ class LDAPGroupsPlugin(object):
             if not status:
                 logger.error('Cannot add metadata for %s: %s'
                                 % (dn, conn.result))
-                return None
+                return
 
             groups = tuple(r['attributes'][self.returned_id][0]
                            for r in conn.response)
