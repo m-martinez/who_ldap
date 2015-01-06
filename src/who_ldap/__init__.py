@@ -285,6 +285,10 @@ class LDAPAttributesPlugin(object):
 
             dn = extract_userdata(identity)
 
+            if not dn:
+                logger.error('Malformed userdata')
+                return
+
             status = conn.search(dn,
                                  self.filterstr,
                                  SEARCH_SCOPE_BASE_OBJECT,
@@ -293,7 +297,7 @@ class LDAPAttributesPlugin(object):
                                              else self.attributes))
 
             if not status:
-                logger.error('Cannot add metadata for %s: %s'
+                logger.error('Cannot add user metadata for %s: %s'
                                 % (dn, conn.result))
                 return
 
@@ -371,7 +375,7 @@ class LDAPGroupsPlugin(object):
     # IMetadataProvider
     def add_metadata(self, environ, identity):
         logger = logging.getLogger('repoze.who')
-        
+
         with make_connection(self.url, self.bind_dn, self.bind_pass) as conn:
             if self.start_tls:
                 conn.start_tls()
@@ -381,13 +385,16 @@ class LDAPGroupsPlugin(object):
 
             dn = extract_userdata(identity)
 
+            if not dn:
+                logger.error('Malformed userdata')
+                return
+
             status = conn.search(self.base_dn,
                                  self.filterstr % {'dn': dn},
                                  self.search_scope,
                                  attributes=[self.returned_id])
-
             if not status:
-                logger.error('Cannot add metadata for %s: %s'
+                logger.error('Cannot add group metadata for %s: %s'
                                 % (dn, conn.result))
                 return
 
