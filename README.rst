@@ -232,7 +232,7 @@ Setting              Default Description
 ``returned_id``      dn      Attribute to return on authentication ('dn' or 'login')
 ``start_tls``        False   If set, initiates TLS on the connection
 ``naming_attribute`` uid     Naming attribute for directory entries
-``search_scope``     subtree Scope of LDAP searchs ('subtree' or 'onelevel')
+``search_scope``     subtree Scope of LDAP search ('subtree' or 'onelevel')
 ``restrict``                 Optional additional filter for search
 ==================== ======= =======================================================
 
@@ -284,7 +284,7 @@ Setting             Default         Description
 ``base_dn``                         Location to begin queries
 ``start_tls``       False           If set, initiates TLS on the connection
 ``attributes``                      LDAP attributes to use.
-                                    Can a comma-delitted list (e.g. uid,cn),
+                                    Can be a simple comma-delimited list (e.g. uid,cn),
                                     or a mapping list (e.g. cn=fullname,mail=email).
 ``filterstr``       (objectClass=*) A filter for the search
 ``flatten``         False           Cleans up LDAP values if they are not lists
@@ -308,6 +308,6 @@ Setting              Default Description
 ``filterstr``                A filter for the search (Default behaviour:
                              (&(objectClass=groupOfUniqueNames)(uniqueMember=%(dn)s)))
 ``name``                     The property name in the identity to use
-``search_scope``     subtree Scope of LDAP searchs ('subtree' or 'onelevel')
+``search_scope``     subtree Scope of LDAP search ('subtree' or 'onelevel')
 ``returned_id``      cn      Which attribute value of the group entry to return
 ==================== ======= =======================================================

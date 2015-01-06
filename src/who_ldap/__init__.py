@@ -248,7 +248,7 @@ class LDAPAttributesPlugin(object):
                      Results won't be filtered unless you specify this.
         name -- property name in the identity to populate. If not specified,
                 will specify the identity itself.
-        attributes -- attributes to use. Can be a comma-delimted list
+        attributes -- attributes to use. Can be a comma-delimited list
                       of `name` or `name=alias` pairs (which will remap
                       attribute names to the desired alias)
         flatten -- If values contain a single item,
