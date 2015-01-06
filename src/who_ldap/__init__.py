@@ -36,7 +36,7 @@ from zope.interface import implementer
 import logging
 
 
-RE_USERDATA = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
+DNRX = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
 
 
 def make_connection(url, bind_dn, bind_pass):
@@ -65,7 +65,7 @@ def parse_map(str):
 
 
 def extract_userdata(identity):
-    match = RE_USERDATA.search(identity.get('userdata', ''))
+    match = DNRX.search(identity.get('userdata', ''))
     if not match:
         return None
     return b64decode(match.group('b64dn'))
@@ -226,7 +226,7 @@ class LDAPAttributesPlugin(object):
     Loads LDAP attributes of the authenticated user.
     """
 
-    dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
+    dnrx = DNRX
 
     def __init__(self,
                  url,
@@ -315,7 +315,7 @@ class LDAPGroupsPlugin(object):
     Add LDAP group memberships of the authenticated user to the identity.
     """
 
-    dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
+    dnrx = DNRX
 
     def __init__(self,
                  url,
