@@ -49,7 +49,7 @@ def setup_module():
     conn = ldap3.Connection(
         server, user=BIND_DN, password=BIND_PW, auto_bind=True)
     # We must explicitly create the BASE_DN DIT components
-    # Not in python3-ldap?
+    # Not in ldap3?
     # Adding a fake user, which is used in the tests
     person_attr = {'cn': fakeuser['cn'],
                    'sn': fakeuser['sn'],
