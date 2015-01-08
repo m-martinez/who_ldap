@@ -233,7 +233,7 @@ class LDAPAttributesPlugin(object):
                  bind_dn='',
                  bind_pass='',
                  start_tls=False,
-                 filterstr='(objectClass=*)',
+                 filterstr='',
                  name=None,
                  attributes=None,
                  flatten=False):
@@ -257,8 +257,6 @@ class LDAPAttributesPlugin(object):
         attributes_map = parse_map(attributes)
 
         assert url, u'Connection URL is required'
-        assert bind_dn, u'Bind DN is required'
-        assert bind_pass, u'Bind DN is required'
 
         self.url = url
         self.bind_dn = bind_dn
@@ -284,17 +282,25 @@ class LDAPAttributesPlugin(object):
                 return None
 
             dn = extract_userdata(identity)
+            if(self.filterstr):
+                status = conn.search('',
+                                     self.filterstr.format(identity=identity),
+                                     SEARCH_SCOPE_WHOLE_SUBTREE,
+                                     attributes=(ALL_ATTRIBUTES
+                                                 if self.attributes is None
+                                                 else self.attributes))
+            else:
+                status = conn.search(dn,
+                                     self.filterstr,
+                                     SEARCH_SCOPE_BASE_OBJECT,
+                                     attributes=(ALL_ATTRIBUTES
+                                                 if self.attributes is None
+                                                 else self.attributes))
 
-            status = conn.search(dn,
-                                 self.filterstr,
-                                 SEARCH_SCOPE_BASE_OBJECT,
-                                 attributes=(ALL_ATTRIBUTES
-                                             if self.attributes is None
-                                             else self.attributes))
 
             if not status:
-                logger.error('Cannot add metadata for %s: %s'
-                                % (dn, conn.result))
+                logger.error(
+                    'Cannot add metadata for %s: %s' % (identity.get('repoze.who.userid'), conn.result))
                 return None
 
             result = {}
