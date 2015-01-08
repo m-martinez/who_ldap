@@ -1,6 +1,12 @@
 Changelog
 =========
 
+3.1.0 (2015-01-08)
+------------------
+
+- Search for users via filter if present [domruf]
+
+
 3.0.2 (2014-06-11)
 ------------------
 
