@@ -52,7 +52,7 @@ def make_connection(url, bind_dn, bind_pass):
 
 def parse_map(mapstr):
     if not mapstr:
-        return None
+        return
     result = {}
     for item in mapstr.split(','):
         item = item.split('=')
@@ -67,7 +67,7 @@ def parse_map(mapstr):
 def extract_userdata(identity):
     match = DNRX.search(identity.get('userdata', ''))
     if not match:
-        return None
+        return
     return b64decode(match.group('b64dn')).decode('utf-8')
 
 
@@ -115,13 +115,13 @@ class LDAPAuthenticatorPlugin(object):
     # IAuthenticator
     def authenticate(self, environ, identity):
         if 'login' not in identity:
-            return None
+            return
         dn = self.naming_pattern % (identity['login'], self.base_dn)
         with make_connection(self.url, dn, identity['password']) as conn:
             if self.start_tls:
                 conn.start_tls()
             if not conn.bind():
-                return None
+                return
             save_userdata(identity, dn)
             return dn if self.ret_style == 'd' else identity['login']
 
@@ -190,7 +190,7 @@ class LDAPSearchAuthenticatorPlugin(object):
         logger = logging.getLogger('repoze.who')
 
         if 'login' not in identity:
-            return None
+            return
 
         with make_connection(self.url, self.bind_dn, self.bind_pass) as conn:
             if self.start_tls:
@@ -198,7 +198,7 @@ class LDAPSearchAuthenticatorPlugin(object):
 
             if not conn.bind():
                 logger.error('Cannot establish connection')
-                return None
+                return
 
             search = \
                 self.search_pattern % identity['login'].replace('*', r'\*')
@@ -206,16 +206,16 @@ class LDAPSearchAuthenticatorPlugin(object):
 
             if len(conn.response) > 1:
                 logger.error('Too many entries found for %s', search)
-                return None
+                return
             if len(conn.response) < 1:
                 logger.warn('No entry found for %s', search)
-                return None
+                return
 
             dn = conn.response[0]['dn']
 
             with make_connection(self.url, dn, identity['password']) as check:
                 if not check.bind():
-                    return None
+                    return
                 save_userdata(identity, dn)
                 return dn if self.ret_style == 'd' else identity['login']
 
@@ -287,7 +287,7 @@ class LDAPAttributesPlugin(object):
                 logger.error('Malformed userdata')
                 return
 
-            if(self.filterstr):
+            if self.filterstr:
                 status = conn.search('',
                                      self.filterstr.format(identity=identity),
                                      SEARCH_SCOPE_WHOLE_SUBTREE,
