@@ -226,8 +226,6 @@ class LDAPAttributesPlugin(object):
     Loads LDAP attributes of the authenticated user.
     """
 
-    dnrx = DNRX
-
     def __init__(self,
                  url,
                  bind_dn='',
@@ -326,8 +324,6 @@ class LDAPGroupsPlugin(object):
     """
     Add LDAP group memberships of the authenticated user to the identity.
     """
-
-    dnrx = DNRX
 
     def __init__(self,
                  url,
