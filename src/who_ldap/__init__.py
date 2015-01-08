@@ -36,7 +36,7 @@ from zope.interface import implementer
 import logging
 
 
-RE_USERDATA = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
+DNRX = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
 
 
 def make_connection(url, bind_dn, bind_pass):
@@ -50,11 +50,11 @@ def make_connection(url, bind_dn, bind_pass):
     return Connection(server, bind_dn, bind_pass)
 
 
-def parse_map(str):
-    if not str:
+def parse_map(mapstr):
+    if not mapstr:
         return None
     result = {}
-    for item in str.split(','):
+    for item in mapstr.split(','):
         item = item.split('=')
         if len(item) == 1:
             key = value = item[0].strip()
@@ -65,15 +65,15 @@ def parse_map(str):
 
 
 def extract_userdata(identity):
-    match = RE_USERDATA.search(identity.get('userdata', ''))
+    match = DNRX.search(identity.get('userdata', ''))
     if not match:
         return None
-    return b64decode(match.group('b64dn'))
+    return b64decode(match.group('b64dn')).decode('utf-8')
 
 
 def save_userdata(identity, dn):
     userdata = identity.get('userdata') or ''
-    encoded = '<dn:%s>' % b64encode(dn.encode('utf-8'))
+    encoded = '<dn:%s>' % b64encode(dn.encode('utf-8')).decode('ascii')
     identity['userdata'] = userdata + encoded
 
 
@@ -205,10 +205,10 @@ class LDAPSearchAuthenticatorPlugin(object):
             conn.search(self.base_dn, search, self.search_scope)
 
             if len(conn.response) > 1:
-                logger.error('Too many entries found for %s' % search)
+                logger.error('Too many entries found for %s', search)
                 return None
             if len(conn.response) < 1:
-                logger.warn('No entry found for %s' % search)
+                logger.warn('No entry found for %s', search)
                 return None
 
             dn = conn.response[0]['dn']
@@ -226,7 +226,7 @@ class LDAPAttributesPlugin(object):
     Loads LDAP attributes of the authenticated user.
     """
 
-    dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
+    dnrx = DNRX
 
     def __init__(self,
                  url,
@@ -248,7 +248,7 @@ class LDAPAttributesPlugin(object):
                      Results won't be filtered unless you specify this.
         name -- property name in the identity to populate. If not specified,
                 will specify the identity itself.
-        attributes -- attributes to use. Can be a comma-delimted list
+        attributes -- attributes to use. Can be a comma-delimited list
                       of `name` or `name=alias` pairs (which will remap
                       attribute names to the desired alias)
         flatten -- If values contain a single item,
@@ -279,9 +279,14 @@ class LDAPAttributesPlugin(object):
                 conn.start_tls()
             if not conn.bind():
                 logger.error('Cannot establish connection')
-                return None
+                return
 
             dn = extract_userdata(identity)
+
+            if not dn:
+                logger.error('Malformed userdata')
+                return
+
             if(self.filterstr):
                 status = conn.search('',
                                      self.filterstr.format(identity=identity),
@@ -297,11 +302,12 @@ class LDAPAttributesPlugin(object):
                                                  if self.attributes is None
                                                  else self.attributes))
 
-
             if not status:
                 logger.error(
-                    'Cannot add metadata for %s: %s' % (identity.get('repoze.who.userid'), conn.result))
-                return None
+                    'Cannot add metadata for %s: %s' % (
+                        identity.get('repoze.who.userid'),
+                        conn.result))
+                return
 
             result = {}
 
@@ -321,7 +327,7 @@ class LDAPGroupsPlugin(object):
     Add LDAP group memberships of the authenticated user to the identity.
     """
 
-    dnrx = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
+    dnrx = DNRX
 
     def __init__(self,
                  url,
@@ -377,25 +383,28 @@ class LDAPGroupsPlugin(object):
     # IMetadataProvider
     def add_metadata(self, environ, identity):
         logger = logging.getLogger('repoze.who')
-        
+
         with make_connection(self.url, self.bind_dn, self.bind_pass) as conn:
             if self.start_tls:
                 conn.start_tls()
             if not conn.bind():
                 logger.error('Cannot establish connection')
-                return None
+                return
 
             dn = extract_userdata(identity)
+
+            if not dn:
+                logger.error('Malformed userdata')
+                return
 
             status = conn.search(self.base_dn,
                                  self.filterstr % {'dn': dn},
                                  self.search_scope,
                                  attributes=[self.returned_id])
-
             if not status:
-                logger.error('Cannot add metadata for %s: %s'
-                                % (dn, conn.result))
-                return None
+                logger.error('Cannot add group metadata for %s: %s',
+                             dn, conn.result)
+                return
 
             groups = tuple(r['attributes'][self.returned_id][0]
                            for r in conn.response)
