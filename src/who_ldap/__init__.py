@@ -304,7 +304,7 @@ class LDAPAttributesPlugin(object):
 
             if not status:
                 logger.error(
-                    'Cannot add metadata for %s: %s' % (
+                    'Cannot add user metadata for %s: %s' % (
                         identity.get('repoze.who.userid'),
                         conn.result))
                 return
@@ -401,9 +401,12 @@ class LDAPGroupsPlugin(object):
                                  self.filterstr % {'dn': dn},
                                  self.search_scope,
                                  attributes=[self.returned_id])
+
             if not status:
-                logger.error('Cannot add group metadata for %s: %s',
-                             dn, conn.result)
+                logger.error(
+                    'Cannot add group metadata for %s: %s' % (
+                        identity.get('repoze.who.userid'),
+                        conn.result))
                 return
 
             groups = tuple(r['attributes'][self.returned_id][0]
