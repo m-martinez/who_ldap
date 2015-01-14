@@ -275,7 +275,7 @@ class LDAPAttributesPlugin(object):
 
         self.name = name
         self.attributes = \
-            list(attributes_map.keys()) if attributes_map else None
+            list(attributes_map.keys()) if attributes_map else ALL_ATTRIBUTES
         self._attributes_map = attributes_map
         self.filterstr = filterstr
         self.flatten = str(flatten)[0].lower() == 't'
@@ -291,26 +291,25 @@ class LDAPAttributesPlugin(object):
                 logger.error('Cannot establish connection')
                 return
 
-            dn = extract_userdata(identity)
-
-            if not dn:
-                logger.error('Malformed userdata')
-                return
-
+            # Behave like search if filterstr is specified, otherwise use base
             if self.filterstr:
-                status = conn.search('',
-                                     self.filterstr.format(identity=identity),
-                                     SEARCH_SCOPE_WHOLE_SUBTREE,
-                                     attributes=(ALL_ATTRIBUTES
-                                                 if self.attributes is None
-                                                 else self.attributes))
+                search_scope = SEARCH_SCOPE_WHOLE_SUBTREE
+                filterstr = self.filterstr.format(identity=identity)
+                # XXX This might need to be a setting?
+                base_dn = ''
             else:
-                status = conn.search(dn,
-                                     self.filterstr,
-                                     SEARCH_SCOPE_BASE_OBJECT,
-                                     attributes=(ALL_ATTRIBUTES
-                                                 if self.attributes is None
-                                                 else self.attributes))
+                search_scope = SEARCH_SCOPE_BASE_OBJECT
+                filterstr = '(objectClass=*)'   # ldap requires a filter string
+                base_dn = extract_userdata(identity)
+                if not base_dn:
+                    logger.error('Malformed userdata')
+                    return
+
+            status = conn.search(
+                base_dn,
+                filterstr,
+                search_scope,
+                attributes=self.attributes)
 
             if not status:
                 logger.error(
