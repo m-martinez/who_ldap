@@ -1,6 +1,12 @@
 Changelog
 =========
 
+3.1.0b2 (2015-02-02)
+--------------------
+
+- Use (objectClass=*) if no filter is specified when scope is base.
+
+
 3.1.0b1 (2015-01-08)
 --------------------
 
