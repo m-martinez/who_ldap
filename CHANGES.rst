@@ -1,18 +1,13 @@
 Changelog
 =========
 
-3.1.0b2 (2015-02-02)
---------------------
-
-- Use (objectClass=*) if no filter is specified when scope is base.
-
-
-3.1.0b1 (2015-01-08)
+3.1.0 (2015-02-09)
 --------------------
 
 - Search for users via filter if present [domruf]
 - Switch to ``ldap3`` package (which was renamed from ``python3-ldap``) [Cito]
 - Convert b64de/encode byte strings to regular strings in Python 3 [Cito]
+- Use (objectClass=*) if no filter is specified when scope is base.
 
 
 3.0.2 (2014-06-11)
