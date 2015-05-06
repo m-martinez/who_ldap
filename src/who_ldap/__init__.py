@@ -117,7 +117,9 @@ class LDAPAuthenticatorPlugin(object):
         if 'login' not in identity:
             return
         dn = self.naming_pattern % (identity['login'], self.base_dn)
-        with make_connection(self.url, dn, identity['password']) as conn:
+        # Ensure proper encoding of unicode passwords
+        password = identity['password'].encode('utf-8')
+        with make_connection(self.url, dn, password) as conn:
             if self.start_tls:
                 conn.start_tls()
             if not conn.bind():
@@ -212,8 +214,9 @@ class LDAPSearchAuthenticatorPlugin(object):
                 return
 
             dn = conn.response[0]['dn']
-
-            with make_connection(self.url, dn, identity['password']) as check:
+            # Ensure proper encoding of unicode passwords
+            password = identity['password'].encode('utf-8')
+            with make_connection(self.url, dn, password) as check:
                 if not check.bind():
                     return
                 save_userdata(identity, dn)
