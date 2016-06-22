@@ -36,6 +36,12 @@ from zope.interface import implementer
 import logging
 
 
+try:
+    string_types = basestring  # Python 2
+except NameError:
+    string_types = str  # Python 3
+
+
 DNRX = re.compile('<dn:(?P<b64dn>[A-Za-z0-9+/]+=*)>')
 
 
@@ -65,16 +71,22 @@ def parse_map(mapstr):
 
 
 def extract_userdata(identity):
-    match = DNRX.search(identity.get('userdata', ''))
-    if not match:
-        return
-    return b64decode(match.group('b64dn')).decode('utf-8')
+    userdata = identity.get('userdata')
+    if isinstance(userdata, dict):  # New user data format
+        return userdata.get('dn')
+    elif isinstance(userdata, string_types):  # Old user data format
+        match = DNRX.search(userdata)
+        if match:
+            return b64decode(match.group('b64dn')).decode('utf-8')
 
 
 def save_userdata(identity, dn):
-    userdata = identity.get('userdata') or ''
-    encoded = '<dn:%s>' % b64encode(dn.encode('utf-8')).decode('ascii')
-    identity['userdata'] = userdata + encoded
+    userdata = identity.setdefault('userdata', {})
+    if isinstance(userdata, dict):  # New user data format
+        identity['userdata']['dn'] = dn
+    elif isinstance(userdata, string_types):  # Old data user format
+        encoded = '<dn:%s>' % b64encode(dn.encode('utf-8')).decode('ascii')
+        identity['userdata'] = userdata + encoded
 
 
 @implementer(IAuthenticator)
