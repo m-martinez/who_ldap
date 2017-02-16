@@ -31,6 +31,7 @@ from ldap3 import (
     SEARCH_SCOPE_SINGLE_LEVEL,
     SEARCH_SCOPE_BASE_OBJECT
 )
+from ldap3.utils.conv import escape_filter_chars
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 from zope.interface import implementer
 import logging
@@ -214,8 +215,9 @@ class LDAPSearchAuthenticatorPlugin(object):
                 logger.error('Cannot establish connection')
                 return
 
+            escaped_login = escape_filter_chars(identity['login'])
             search = \
-                self.search_pattern % identity['login'].replace('*', r'\*')
+                self.search_pattern % escaped_login
             conn.search(self.base_dn, search, self.search_scope)
 
             if len(conn.response) > 1:

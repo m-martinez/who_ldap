@@ -24,7 +24,7 @@ CHANGELOG = open(os.path.join(HERE, 'CHANGES.rst')).read()
 
 REQUIRES = [
     'repoze.who>=2.3',
-    'ldap3>=0.9.0',
+    'ldap3>=0.9.0,<2.0.0',
     'setuptools',
     'zope.interface',
 ]
