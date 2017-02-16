@@ -1,6 +1,24 @@
 Changelog
 =========
 
+3.2.2 (2017-02-15)
+--------------------
+
+- Properly escape search filter string (http://ldap3.readthedocs.io/searches.html#the-search-operation)
+
+
+3.2.1 (2016-06-22)
+--------------------
+
+- Alter release workflow
+
+
+3.2.0 (2016-06-22)
+--------------------
+
+- Use version 2.3 of ``repoze.who`` which implements improved userdata heuristics
+
+
 3.1.0 (2015-02-09)
 --------------------
 
