@@ -176,8 +176,6 @@ class LDAPSearchAuthenticatorPlugin(object):
 
         assert url, u'Connection URL is required'
         assert base_dn, u'Base DN is required'
-        assert bind_dn, u'Bind DN is required'
-        assert bind_pass, u'Bind DN is required'
         assert returned_id.lower() in ('dn', 'login'), \
             u'The return style should be \'dn\' or \'login\''
         assert search_scope.lower()[:3] in ('one', 'sub'), \
@@ -372,8 +370,6 @@ class LDAPGroupsPlugin(object):
 
         assert url, u'Connection URL is required'
         assert base_dn, u'Base DN is required'
-        assert bind_dn, u'Bind DN is required'
-        assert bind_pass, u'Bind DN is required'
         assert search_scope.lower()[:3] in ('one', 'sub'), \
             u'The search scope should be \'one[level]\' or \'sub[tree]\')'
 
