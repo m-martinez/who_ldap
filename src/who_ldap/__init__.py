@@ -27,7 +27,7 @@ from ldap3 import (
     Server,
     Connection,
     ALL_ATTRIBUTES,
-    SEARCH_SCOPE_WHOLE_SUBTREE,
+    SUBTREE,
     SEARCH_SCOPE_SINGLE_LEVEL,
     SEARCH_SCOPE_BASE_OBJECT
 )
@@ -189,7 +189,7 @@ class LDAPSearchAuthenticatorPlugin(object):
         self.ret_style = 'd' if returned_id.lower() == 'dn' else 'l'
         self.naming_pattern = u'%s=%%s,%%s' % naming_attribute
         self.search_scope = \
-            SEARCH_SCOPE_WHOLE_SUBTREE \
+            SUBTREE \
             if search_scope.lower().startswith('sub') \
             else SEARCH_SCOPE_SINGLE_LEVEL
         if restrict:
@@ -296,7 +296,7 @@ class LDAPAttributesPlugin(object):
 
             # Behave like search if filterstr is specified, otherwise use base
             if self.filterstr:
-                search_scope = SEARCH_SCOPE_WHOLE_SUBTREE
+                search_scope = SUBTREE
                 filterstr = self.filterstr.format(identity=identity)
                 # XXX This might need to be a setting?
                 base_dn = ''
@@ -379,7 +379,7 @@ class LDAPGroupsPlugin(object):
         self.bind_pass = bind_pass
         self.start_tls = bool(start_tls)
         self.search_scope = \
-            SEARCH_SCOPE_WHOLE_SUBTREE \
+            SUBTREE \
             if search_scope.lower().startswith('sub') \
             else SEARCH_SCOPE_SINGLE_LEVEL
 
