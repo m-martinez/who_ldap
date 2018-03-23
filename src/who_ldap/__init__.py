@@ -28,7 +28,7 @@ from ldap3 import (
     Connection,
     ALL_ATTRIBUTES,
     SUBTREE,
-    SEARCH_SCOPE_SINGLE_LEVEL,
+    LEVEL,
     BASE
 )
 from ldap3.utils.conv import escape_filter_chars
@@ -191,7 +191,7 @@ class LDAPSearchAuthenticatorPlugin(object):
         self.search_scope = \
             SUBTREE \
             if search_scope.lower().startswith('sub') \
-            else SEARCH_SCOPE_SINGLE_LEVEL
+            else LEVEL
         if restrict:
             self.search_pattern = u'(&%s(%s=%%s))' % (
                 restrict, naming_attribute)
@@ -381,7 +381,7 @@ class LDAPGroupsPlugin(object):
         self.search_scope = \
             SUBTREE \
             if search_scope.lower().startswith('sub') \
-            else SEARCH_SCOPE_SINGLE_LEVEL
+            else LEVEL
 
         self.name = name
         self.filterstr = filterstr or (
