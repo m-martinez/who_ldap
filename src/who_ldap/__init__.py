@@ -29,7 +29,7 @@ from ldap3 import (
     ALL_ATTRIBUTES,
     SUBTREE,
     SEARCH_SCOPE_SINGLE_LEVEL,
-    SEARCH_SCOPE_BASE_OBJECT
+    BASE
 )
 from ldap3.utils.conv import escape_filter_chars
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
@@ -301,7 +301,7 @@ class LDAPAttributesPlugin(object):
                 # XXX This might need to be a setting?
                 base_dn = ''
             else:
-                search_scope = SEARCH_SCOPE_BASE_OBJECT
+                search_scope = BASE
                 filterstr = '(objectClass=*)'   # ldap requires a filter string
                 base_dn = extract_userdata(identity)
                 if not base_dn:
