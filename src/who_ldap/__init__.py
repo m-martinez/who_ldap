@@ -27,9 +27,9 @@ from ldap3 import (
     Server,
     Connection,
     ALL_ATTRIBUTES,
-    SEARCH_SCOPE_WHOLE_SUBTREE,
-    SEARCH_SCOPE_SINGLE_LEVEL,
-    SEARCH_SCOPE_BASE_OBJECT
+    SUBTREE,
+    LEVEL,
+    BASE
 )
 from ldap3.utils.conv import escape_filter_chars
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
@@ -189,9 +189,9 @@ class LDAPSearchAuthenticatorPlugin(object):
         self.ret_style = 'd' if returned_id.lower() == 'dn' else 'l'
         self.naming_pattern = u'%s=%%s,%%s' % naming_attribute
         self.search_scope = \
-            SEARCH_SCOPE_WHOLE_SUBTREE \
+            SUBTREE \
             if search_scope.lower().startswith('sub') \
-            else SEARCH_SCOPE_SINGLE_LEVEL
+            else LEVEL
         if restrict:
             self.search_pattern = u'(&%s(%s=%%s))' % (
                 restrict, naming_attribute)
@@ -296,12 +296,12 @@ class LDAPAttributesPlugin(object):
 
             # Behave like search if filterstr is specified, otherwise use base
             if self.filterstr:
-                search_scope = SEARCH_SCOPE_WHOLE_SUBTREE
+                search_scope = SUBTREE
                 filterstr = self.filterstr.format(identity=identity)
                 # XXX This might need to be a setting?
                 base_dn = ''
             else:
-                search_scope = SEARCH_SCOPE_BASE_OBJECT
+                search_scope = BASE
                 filterstr = '(objectClass=*)'   # ldap requires a filter string
                 base_dn = extract_userdata(identity)
                 if not base_dn:
@@ -379,9 +379,9 @@ class LDAPGroupsPlugin(object):
         self.bind_pass = bind_pass
         self.start_tls = bool(start_tls)
         self.search_scope = \
-            SEARCH_SCOPE_WHOLE_SUBTREE \
+            SUBTREE \
             if search_scope.lower().startswith('sub') \
-            else SEARCH_SCOPE_SINGLE_LEVEL
+            else LEVEL
 
         self.name = name
         self.filterstr = filterstr or (
